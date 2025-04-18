@@ -8,7 +8,7 @@ const supabase = createClient(
   process.env.SUPABASE_KEY as string
 );
 const provider = new ethers.JsonRpcProvider(
-  process.env.NEXT_PUBLIC_RPC_URL as string
+  process.env.RPC_URL as string
 );
 const contract = new ethers.Contract(NFT_CONTRACT_ADDRESS, abi, provider);
 

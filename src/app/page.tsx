@@ -54,8 +54,6 @@ import {
   FaTwitter,
   FaDiscord,
   FaTelegram,
-  FaMedium,
-  FaGithub,
 } from "react-icons/fa";
 import { SiTarget } from "react-icons/si";
 import {
@@ -67,19 +65,19 @@ import {
   createWalletClient,
   custom,
 } from "viem";
-import { anvil } from "viem/chains";
+import { saigon, ronin } from "viem/chains";
 import { abi } from "@/lib/abi.json";
 import {
-  ChainIds,
   ConnectorError,
   ConnectorErrorType,
   requestRoninWalletConnector,
 } from "@sky-mavis/tanto-connect";
 
-// Define contract addresses and ABIs (add this near the top of your file, before the App function)
-const NFT_CONTRACT_ADDRESS = "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0"; // Replace with your NFT contract address
-const RON_TOKEN_ADDRESS = "0x5FbDB2315678afecb367f032d93F642f64180aa3"; // Replace with your RON token address
-const KITTY_TOKEN_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"; // Replace with your KITTY token address
+const NFT_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as string;
+const RON_TOKEN_ADDRESS = process.env.NEXT_PUBLIC_RON_ADDRESS as string;
+const KITTY_TOKEN_ADDRESS = process.env.NEXT_PUBLIC_KTTY_ADDRESS as string;
+
+const currentChain = process.env.NEXT_PUBLIC_CHAIN as string === "ronin" ? ronin : saigon;
 
 // Parse the ABI from your contract
 const NFT_ABI = abi;
@@ -111,16 +109,11 @@ const glowAnimation = keyframes`
 
 function Home() {
   const [connector, setConnector] = useState<any>(null);
-  const [connectedAddress, setConnectedAddress] = useState();
   const [error, setError] = useState<any>(null);
-
-  const [userAddresses, setUserAddresses] = useState();
-  const [currentChainId, setCurrentChainId] = useState(null);
 
   const switchChain = async (chainId: any) => {
     try {
       await connector?.switchChain(chainId);
-      setCurrentChainId(chainId);
     } catch (error) {
       console.error(error);
     }
@@ -140,47 +133,11 @@ function Home() {
     }
   };
 
-  const connectRoninWallet = async () => {
-    if (!connector && error === ConnectorErrorType.PROVIDER_NOT_FOUND) {
-      window.open("https://wallet.roninchain.com", "_blank");
-      return;
-    }
-
-    const connectResult = await connector?.connect();
-
-    console.log(connectResult);
-    console.log(connector.getProvider());
-
-    if (connectResult) {
-      setConnectedAddress(connectResult.account);
-      setCurrentChainId(connectResult.chainId);
-    }
-
-    const accounts = await connector?.getAccounts();
-
-    if (accounts) {
-      setUserAddresses(accounts);
-    }
-  };
-
   useEffect(() => {
     getRoninWalletConnector().then((connector) => {
       setConnector(connector);
     });
   }, []);
-
-  const formatConnectedChain = (chainId: any) => {
-    switch (chainId) {
-      case ChainIds.RoninMainnet:
-        return `Ronin Mainnet - ${chainId}`;
-      case ChainIds.RoninTestnet:
-        return `Saigon Testnet - ${chainId}`;
-      case null:
-        return "Unknown Chain";
-      default:
-        return `Unknown Chain - ${chainId}`;
-    }
-  };
 
   const { colorMode, toggleColorMode } = useColorMode();
   const [mintAmount, setMintAmount] = useState(1);
@@ -210,53 +167,11 @@ function Home() {
   const [balances, setBalances] = useState({ ron: "0", kitty: "0" });
   const [showWalletMenu, setShowWalletMenu] = useState(false);
 
-  // Add this effect to handle wallet changes
-  useEffect(() => {
-    if (window.ethereum) {
-      // Handle account changes
-      const handleAccountsChanged = async (accounts: any) => {
-        if (accounts.length === 0) {
-          // User disconnected their wallet
-          handleDisconnect();
-        } else if (accounts[0] !== account) {
-          // User switched to a different account
-          setAccount(accounts[0]);
-          if (publicClient) {
-            await fetchBalances(publicClient, accounts[0]);
-          }
-
-          toast({
-            title: "Account changed",
-            description: "Your connected wallet account has changed.",
-            status: "info",
-            duration: 3000,
-            isClosable: true,
-          });
-        }
-      };
-
-      // Handle network changes
-      const handleChainChanged = () => {
-        // Reload the page on chain change as recommended by MetaMask
-        window.location.reload();
-      };
-
-      window.ethereum.on("accountsChanged", handleAccountsChanged);
-      window.ethereum.on("chainChanged", handleChainChanged);
-
-      // Cleanup listeners on unmount
-      return () => {
-        window.ethereum?.removeListener(
-          "accountsChanged",
-          handleAccountsChanged
-        );
-        window.ethereum?.removeListener("chainChanged", handleChainChanged);
-      };
-    }
-  }, [account, publicClient]);
-
   // Add this effect to refresh balances periodically when connected
   useEffect(() => {
+    console.log("isConnected:", isConnected);
+    console.log("account:", account);
+    console.log("publicClient:", publicClient);
     if (isConnected && account && publicClient) {
       // Fetch balances initially
       fetchBalances(publicClient, account);
@@ -264,11 +179,24 @@ function Home() {
       // Set up interval to refresh balances every 15 seconds
       const intervalId = setInterval(() => {
         fetchBalances(publicClient, account);
-      }, 15000);
+      }, 5000);
 
       return () => clearInterval(intervalId);
     }
   }, [isConnected, account, publicClient]);
+
+  useEffect(() => {
+    // Create Viem clients
+    const publicClient = createPublicClient({
+      chain: currentChain,
+      transport: http(),
+    });
+
+    setPublicClient(publicClient);
+
+    // Fetch contract data
+    fetchContractData(publicClient);
+  }, []);
 
   // Connect wallet function (replace the existing handleConnect function)
   const handleConnect = async () => {
@@ -293,43 +221,31 @@ function Home() {
       const connectResult = await connector?.connect();
 
       if (connectResult) {
+        if (connectResult.chainId !== currentChain.id) switchChain(currentChain.id);
+
         const provider = await connector.getProvider();
-        console.log("Provider", provider);
-        // setConnectedAddress(connectResult.account);
-        // setCurrentChainId(connectResult.chainId);
-
         const accounts = await connector?.getAccounts();
-
-        if (accounts) {
-          setUserAddresses(accounts);
-        }
-
-        // Request account access
-        const accounts = await window.ethereum.request({
-          method: "eth_requestAccounts",
-        });
 
         const account = accounts[0];
 
-        console.log("Eth account", account);
         setAccount(account);
 
         // Create Viem clients
         const publicClient = createPublicClient({
-          chain: anvil,
+          chain: currentChain,
           transport: http(),
         });
 
         const walletClient = createWalletClient({
-          chain: anvil,
-          transport: custom(window.ethereum),
+          chain: currentChain,
+          transport: custom(provider),
         });
 
         setPublicClient(publicClient);
         setWalletClient(walletClient);
 
         // Fetch contract data
-        await fetchContractData(publicClient, account);
+        await fetchContractData(publicClient);
         await fetchBalances(publicClient, account);
 
         setIsConnected(true);
@@ -358,7 +274,7 @@ function Home() {
   };
 
   // Function to fetch contract data
-  const fetchContractData = async (client: any, userAccount: any) => {
+  const fetchContractData = async (client: any) => {
     try {
       // Get prices from NFT contract
       const ronTokenPrice = await client.readContract({
@@ -400,7 +316,7 @@ function Home() {
       }
 
       // Check if tokens are approved
-      await checkApprovals(client, userAccount);
+      // await checkApprovals(client, userAccount);
     } catch (error) {
       console.error("Error fetching contract data:", error);
       toast({
@@ -425,6 +341,7 @@ function Home() {
 
   // Add this function to fetch token balances
   const fetchBalances = async (client: any, account: any) => {
+    console.log("Fetching balances for account:", account);
     try {
       // Get RON balance
       const ronBalance = await client.readContract({
@@ -458,12 +375,14 @@ function Home() {
   };
 
   // Add disconnect function
-  const handleDisconnect = () => {
+  const handleDisconnect = async () => {
     setAccount(null);
     setIsConnected(false);
     setWalletDisplay("");
     setBalances({ ron: "0", kitty: "0" });
     setShowWalletMenu(false);
+
+    await connector?.disconnect();
 
     toast({
       title: "Wallet disconnected",
@@ -798,32 +717,6 @@ function Home() {
           </Flex>
 
           <HStack spacing={4}>
-            <>
-              {connectedAddress && (
-                <>
-                  <button
-                    onClick={() =>
-                      switchChain(
-                        currentChainId === ChainIds.RoninMainnet
-                          ? ChainIds.RoninTestnet
-                          : ChainIds.RoninMainnet
-                      )
-                    }
-                  >
-                    Switch chain
-                  </button>
-                  <p>Current Chain: {formatConnectedChain(currentChainId)}</p>
-                </>
-              )}
-              <button onClick={connectRoninWallet}>Connect Ronin Wallet</button>
-              {connectedAddress && (
-                <p>
-                  🎉 Ronin Wallet is connected, current address:{" "}
-                  {connectedAddress}. All addresses: {userAddresses}
-                </p>
-              )}
-            </>
-
             <HStack
               display={{ base: "none", md: "flex" }}
               spacing={4}
@@ -848,20 +741,6 @@ function Home() {
               <IconButton
                 aria-label="Telegram"
                 icon={<FaTelegram />}
-                variant="ghost"
-                color={accentColor}
-                _hover={{ bg: clr2 }}
-              />
-              <IconButton
-                aria-label="Medium"
-                icon={<FaMedium />}
-                variant="ghost"
-                color={accentColor}
-                _hover={{ bg: clr2 }}
-              />
-              <IconButton
-                aria-label="GitHub"
-                icon={<FaGithub />}
                 variant="ghost"
                 color={accentColor}
                 _hover={{ bg: clr2 }}
@@ -1353,20 +1232,6 @@ function Home() {
               <IconButton
                 aria-label="Telegram"
                 icon={<FaTelegram />}
-                variant="ghost"
-                color={accentColor}
-                fontSize="xl"
-              />
-              <IconButton
-                aria-label="Medium"
-                icon={<FaMedium />}
-                variant="ghost"
-                color={accentColor}
-                fontSize="xl"
-              />
-              <IconButton
-                aria-label="GitHub"
-                icon={<FaGithub />}
                 variant="ghost"
                 color={accentColor}
                 fontSize="xl"
