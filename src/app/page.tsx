@@ -75,14 +75,14 @@ import {
 
 const NFT_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as string;
 const RON_TOKEN_ADDRESS = process.env.NEXT_PUBLIC_RON_ADDRESS as string;
-const KITTY_TOKEN_ADDRESS = process.env.NEXT_PUBLIC_KTTY_ADDRESS as string;
+const KTTY_TOKEN_ADDRESS = process.env.NEXT_PUBLIC_KTTY_ADDRESS as string;
 
 const currentChain = process.env.NEXT_PUBLIC_CHAIN as string === "ronin" ? ronin : saigon;
 
 // Parse the ABI from your contract
 const NFT_ABI = abi;
 
-// ERC20 Token ABI (for RON and KITTY tokens)
+// ERC20 Token ABI (for RON and KTTY tokens)
 const ERC20_ABI = parseAbi([
   "function approve(address spender, uint256 amount) returns (bool)",
   "function allowance(address owner, address spender) view returns (uint256)",
@@ -158,13 +158,13 @@ function Home() {
   const [discountedRonPrice, setDiscountedRonPrice] = useState<string | null>(
     null
   );
-  const [kittyAmount, setKittyAmount] = useState<string | null>(null);
+  const [kttyAmount, setKttyAmount] = useState<string | null>(null);
   const [availableNFTs, setAvailableNFTs] = useState<number[]>([]);
-  const [isApproved, setIsApproved] = useState({ ron: false, kitty: false });
+  const [isApproved, setIsApproved] = useState({ ron: false, ktty: false });
   const [loading, setLoading] = useState(false);
 
   const [walletDisplay, setWalletDisplay] = useState("");
-  const [balances, setBalances] = useState({ ron: "0", kitty: "0" });
+  const [balances, setBalances] = useState({ ron: "0", ktty: "0" });
   const [showWalletMenu, setShowWalletMenu] = useState(false);
 
   // Add this effect to refresh balances periodically when connected
@@ -298,7 +298,7 @@ function Home() {
       // Convert prices from wei
       setRonPrice(formatEther(ronTokenPrice));
       setDiscountedRonPrice(formatEther(ronAndNativePrice));
-      setKittyAmount(formatEther(nativeTokenAmount));
+      setKttyAmount(formatEther(nativeTokenAmount));
 
       // Check for available NFTs (this would need to be implemented according to your contract structure)
       // For example, you might scan tokenIds to find ones that are available
@@ -351,9 +351,9 @@ function Home() {
         args: [account],
       });
 
-      // Get KITTY balance
-      const kittyBalance = await client.readContract({
-        address: KITTY_TOKEN_ADDRESS,
+      // Get KTTY balance
+      const kttyBalance = await client.readContract({
+        address: KTTY_TOKEN_ADDRESS,
         abi: ERC20_ABI,
         functionName: "balanceOf",
         args: [account],
@@ -362,7 +362,7 @@ function Home() {
       // Format balances
       setBalances({
         ron: formatEther(ronBalance),
-        kitty: formatEther(kittyBalance),
+        ktty: formatEther(kttyBalance),
       });
 
       // Format address for display (0x1234...5678)
@@ -379,7 +379,7 @@ function Home() {
     setAccount(null);
     setIsConnected(false);
     setWalletDisplay("");
-    setBalances({ ron: "0", kitty: "0" });
+    setBalances({ ron: "0", ktty: "0" });
     setShowWalletMenu(false);
 
     await connector?.disconnect();
@@ -404,9 +404,9 @@ function Home() {
         args: [userAccount, NFT_CONTRACT_ADDRESS],
       });
 
-      // Check KITTY allowance
-      const kittyAllowance = await client.readContract({
-        address: KITTY_TOKEN_ADDRESS,
+      // Check KTTY allowance
+      const kttyAllowance = await client.readContract({
+        address: KTTY_TOKEN_ADDRESS,
         abi: ERC20_ABI,
         functionName: "allowance",
         args: [userAccount, NFT_CONTRACT_ADDRESS],
@@ -428,7 +428,7 @@ function Home() {
       // Set approval status
       setIsApproved({
         ron: ronAllowance >= ronTokenPrice,
-        kitty: kittyAllowance >= nativeTokenAmount,
+        ktty: kttyAllowance >= nativeTokenAmount,
       });
     } catch (error) {
       console.error("Error checking approvals:", error);
@@ -440,7 +440,7 @@ function Home() {
     try {
       setLoading(true);
 
-      if (!ronPrice || !kittyAmount) {
+      if (!ronPrice || !kttyAmount) {
         toast({
           title: "Price data not available",
           description: "Please fetch contract data first.",
@@ -451,9 +451,9 @@ function Home() {
         return;
       }
       const tokenAddress =
-        tokenType === "ron" ? RON_TOKEN_ADDRESS : KITTY_TOKEN_ADDRESS;
+        tokenType === "ron" ? RON_TOKEN_ADDRESS : KTTY_TOKEN_ADDRESS;
       const amount =
-        tokenType === "ron" ? parseEther(ronPrice) : parseEther(kittyAmount);
+        tokenType === "ron" ? parseEther(ronPrice) : parseEther(kttyAmount);
 
       if (!walletClient) {
         toast({
@@ -537,6 +537,8 @@ function Home() {
         isClosable: true,
       });
     }
+
+    setIsApproved({ ron: false, ktty: false });
   }
 
   // Function to mint with RON
@@ -600,8 +602,8 @@ function Home() {
     }
   };
 
-  // Function to mint with RON + KITTY
-  const mintWithRonAndKitty = async () => {
+  // Function to mint with RON + KTTY
+  const mintWithRonAndKtty = async () => {
     const selectedNFT = randomNft();
 
     try {
@@ -612,12 +614,12 @@ function Home() {
         await approveTokens("ron");
       }
 
-      // Then check if KITTY is approved
-      if (!isApproved.kitty) {
-        await approveTokens("kitty");
+      // Then check if KTTY is approved
+      if (!isApproved.ktty) {
+        await approveTokens("ktty");
       }
 
-      // Mint with RON + KITTY
+      // Mint with RON + KTTY
       const hash = await walletClient.writeContract({
         account: account,
         address: NFT_CONTRACT_ADDRESS,
@@ -638,7 +640,7 @@ function Home() {
       await publicClient.waitForTransactionReceipt({ hash });
       toast({
         title: "Minting successful",
-        description: "Your NFT has been minted successfully with RON + KITTY!",
+        description: "Your NFT has been minted successfully with RON + KTTY!",
         status: "success",
         duration: 5000,
         isClosable: true,
@@ -647,13 +649,13 @@ function Home() {
       // Update available NFTs
       await updateMintedNft(selectedNFT);
     } catch (error) {
-      console.error("Error minting with RON + KITTY:", error);
+      console.error("Error minting with RON + KTTY:", error);
       toast({
         title: "Minting failed",
         description:
           error instanceof Error
             ? error.message
-            : "Failed to mint NFT with RON + KITTY.",
+            : "Failed to mint NFT with RON + KTTY.",
         status: "error",
         duration: 3000,
         isClosable: true,
@@ -818,9 +820,9 @@ function Home() {
                           </Text>
                         </HStack>
                         <HStack justify="space-between" mt={1}>
-                          <Text fontSize="sm">KITTY Balance</Text>
+                          <Text fontSize="sm">KTTY Balance</Text>
                           <Text fontSize="sm" fontWeight="bold">
-                            {parseInt(balances.kitty).toLocaleString()}
+                            {parseInt(balances.ktty).toLocaleString()}
                           </Text>
                         </HStack>
                       </Box>
@@ -907,7 +909,7 @@ function Home() {
                 KttyWorld Mint Collection
               </Heading>
               <Text fontSize="lg" opacity={0.8}>
-                Mint your exclusive NFTs using RON or combine RON with KITTY
+                Mint your exclusive NFTs using RON or combine RON with KTTY
                 tokens for special discounts.
               </Text>
             </VStack>
@@ -928,7 +930,7 @@ function Home() {
                       RON Only
                     </Tab>
                     <Tab _selected={{ bg: accentColor, color: "white" }}>
-                      RON + KITTY
+                      RON + KTTY
                     </Tab>
                   </TabList>
                   <TabPanels>
@@ -998,7 +1000,7 @@ function Home() {
                       </VStack>
                     </TabPanel>
 
-                    {/* RON + KITTY Tab */}
+                    {/* RON + KTTY Tab */}
                     <TabPanel px={0}>
                       <VStack spacing={4} align="stretch">
                         <HStack
@@ -1015,15 +1017,15 @@ function Home() {
                             DISCOUNT
                           </Badge>
                           <Text fontSize="sm">
-                            Save by using KITTY tokens along with RON!
+                            Save by using KTTY tokens along with RON!
                           </Text>
                         </HStack>
 
                         <Flex justify="space-between">
                           <Text fontWeight="medium">Discounted price</Text>
                           <Text fontWeight="bold">
-                            {discountedRonPrice && kittyAmount
-                              ? `${discountedRonPrice} RON + ${kittyAmount} KITTY`
+                            {discountedRonPrice && kttyAmount
+                              ? `${discountedRonPrice} RON + ${kttyAmount} KTTY`
                               : "Loading..."}
                           </Text>
                         </Flex>
@@ -1065,17 +1067,17 @@ function Home() {
                               fontSize="sm"
                               color={useColorModeValue("gray.600", "gray.400")}
                             >
-                              {kittyAmount
+                              {kttyAmount
                                 ? `+ ${(
-                                    parseFloat(kittyAmount) * mintAmount
-                                  ).toFixed(0)} KITTY`
+                                    parseFloat(kttyAmount) * mintAmount
+                                  ).toFixed(0)} KTTY`
                                 : "Loading..."}
                             </Text>
                           </VStack>
                         </Flex>
 
                         <Button
-                          onClick={mintWithRonAndKitty}
+                          onClick={mintWithRonAndKtty}
                           variant="primary"
                           size="lg"
                           isLoading={loading}
@@ -1095,9 +1097,9 @@ function Home() {
                         >
                           {!isConnected
                             ? "Connect Wallet to Mint"
-                            : !isApproved.ron || !isApproved.kitty
+                            : !isApproved.ron || !isApproved.ktty
                             ? "Approve Tokens"
-                            : "Mint with RON + KITTY"}
+                            : "Mint with RON + KTTY"}
                         </Button>
                       </VStack>
                     </TabPanel>
@@ -1134,9 +1136,9 @@ function Home() {
             >
               {[
                 {
-                  title: "KITTY Token Utility",
+                  title: "KTTY Token Utility",
                   description:
-                    "Use your KITTY tokens for discounts and exclusive access to special NFT collections.",
+                    "Use your KTTY tokens for discounts and exclusive access to special NFT collections.",
                 },
                 {
                   title: "RON Integration",
