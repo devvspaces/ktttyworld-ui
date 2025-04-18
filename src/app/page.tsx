@@ -262,10 +262,7 @@ function Home() {
       console.error("Connection error:", error);
       toast({
         title: "Connection failed",
-        description:
-          (error instanceof Error
-            ? error.message
-            : "An unknown error occurred") || "Failed to connect wallet.",
+        description: "Failed to connect wallet.",
         status: "error",
         duration: 3000,
         isClosable: true,
@@ -321,10 +318,7 @@ function Home() {
       console.error("Error fetching contract data:", error);
       toast({
         title: "Failed to fetch contract data",
-        description:
-          error instanceof Error
-            ? error.message
-            : "An error occurred when loading contract data.",
+        description: "An error occurred when loading contract data.",
         status: "error",
         duration: 3000,
         isClosable: true,
@@ -498,10 +492,7 @@ function Home() {
       console.error(`Error approving ${tokenType}:`, error);
       toast({
         title: "Approval failed",
-        description:
-          error instanceof Error
-            ? error.message
-            : `Failed to approve ${tokenType.toUpperCase()}.`,
+        description: `Failed to approve ${tokenType.toUpperCase()}.`,
         status: "error",
         duration: 3000,
         isClosable: true,
@@ -545,8 +536,6 @@ function Home() {
   const mintWithRon = async () => {
     const selectedNFT = randomNft();
 
-    console.log("Selected NFT:", selectedNFT);
-
     try {
       setLoading(true);
 
@@ -589,10 +578,7 @@ function Home() {
       console.error("Error minting with RON:", error);
       toast({
         title: "Minting failed",
-        description:
-          error instanceof Error
-            ? error.message
-            : "Failed to mint NFT with RON.",
+        description: "Failed to mint NFT with RON.",
         status: "error",
         duration: 3000,
         isClosable: true,
@@ -652,10 +638,7 @@ function Home() {
       console.error("Error minting with RON + KTTY:", error);
       toast({
         title: "Minting failed",
-        description:
-          error instanceof Error
-            ? error.message
-            : "Failed to mint NFT with RON + KTTY.",
+        description: "Failed to mint NFT with RON + KTTY.",
         status: "error",
         duration: 3000,
         isClosable: true,
