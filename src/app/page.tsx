@@ -60,7 +60,6 @@ import {
   createPublicClient,
   http,
   parseAbi,
-  parseEther,
   formatEther,
   createWalletClient,
   custom,
@@ -77,7 +76,8 @@ const NFT_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as string;
 const RON_TOKEN_ADDRESS = process.env.NEXT_PUBLIC_RON_ADDRESS as string;
 const KTTY_TOKEN_ADDRESS = process.env.NEXT_PUBLIC_KTTY_ADDRESS as string;
 
-const currentChain = process.env.NEXT_PUBLIC_CHAIN as string === "ronin" ? ronin : saigon;
+const currentChain =
+  (process.env.NEXT_PUBLIC_CHAIN as string) === "ronin" ? ronin : saigon;
 
 // Parse the ABI from your contract
 const NFT_ABI = abi;
@@ -221,7 +221,8 @@ function Home() {
       const connectResult = await connector?.connect();
 
       if (connectResult) {
-        if (connectResult.chainId !== currentChain.id) switchChain(currentChain.id);
+        if (connectResult.chainId !== currentChain.id)
+          switchChain(currentChain.id);
 
         const provider = await connector.getProvider();
         const accounts = await connector?.getAccounts();
@@ -430,7 +431,7 @@ function Home() {
   };
 
   // Function to approve token spending
-  const approveTokens = async (tokenType: string) => {
+  const approveTokens = async (tokenType: string, amount: bigint) => {
     try {
       setLoading(true);
 
@@ -444,12 +445,8 @@ function Home() {
         });
         return;
       }
-      const tokenAddress =
-        tokenType === "ron" ? RON_TOKEN_ADDRESS : KTTY_TOKEN_ADDRESS;
-      const amount =
-        tokenType === "ron" ? parseEther(ronPrice) : parseEther(kttyAmount);
 
-      if (!walletClient) {
+      if (!walletClient || !publicClient) {
         toast({
           title: "Wallet client not initialized",
           description: "Please connect your wallet.",
@@ -459,12 +456,35 @@ function Home() {
         });
         return;
       }
+
+      const tokenAddress =
+        tokenType === "ron" ? RON_TOKEN_ADDRESS : KTTY_TOKEN_ADDRESS;
+
+      // 1) Read the existing allowance via publicClient (read‑only)
+      const currentAllowance = await publicClient.readContract({
+        address: tokenAddress,
+        abi: ERC20_ABI,
+        functionName: "allowance",
+        args: [account, NFT_CONTRACT_ADDRESS],
+      });
+
+      if (currentAllowance >= amount) {
+        toast({
+          title: "Already approved",
+          description: `You’ve already approved enough ${tokenType.toUpperCase()}.`,
+          status: "info",
+          duration: 3000,
+          isClosable: true,
+        });
+        return;
+      }
+
       const hash = await walletClient.writeContract({
         account: account,
         address: tokenAddress,
         abi: ERC20_ABI,
         functionName: "approve",
-        args: [NFT_CONTRACT_ADDRESS, amount],
+        args: [NFT_CONTRACT_ADDRESS, amount - currentAllowance],
       });
 
       toast({
@@ -507,10 +527,10 @@ function Home() {
     return availableNFTs[randomIndex];
   }
 
-  async function updateMintedNft(tokenId: number) {
+  async function updateMintedNft(tokenIds: number[]) {
     const response = await fetch("/api/update", {
       method: "POST",
-      body: JSON.stringify({ token_id: tokenId }),
+      body: JSON.stringify({ token_ids: tokenIds }),
     });
     const data = await response.json();
     console.log("NFT updated:", data);
@@ -534,17 +554,15 @@ function Home() {
 
   // Function to mint with RON
   const mintWithRon = async () => {
-    const selectedNFT = randomNft();
-
     try {
       setLoading(true);
 
       // First check if RON is approved
-      if (!isApproved.ron) {
-        await approveTokens("ron");
-      }
+      const totalAmount = BigInt(parseFloat(ronPrice!) * mintAmount * 10 ** 18);
+      await approveTokens("ron", totalAmount);
 
       // Mint with RON
+      const selectedNFT = Array.from({ length: mintAmount }, randomNft);
       const hash = await walletClient.writeContract({
         account: account,
         address: NFT_CONTRACT_ADDRESS,
@@ -590,22 +608,24 @@ function Home() {
 
   // Function to mint with RON + KTTY
   const mintWithRonAndKtty = async () => {
-    const selectedNFT = randomNft();
-
     try {
       setLoading(true);
 
       // First check if RON is approved
-      if (!isApproved.ron) {
-        await approveTokens("ron");
-      }
+
+      const ronAmount = BigInt(
+        parseFloat(discountedRonPrice!) * mintAmount * 10 ** 18
+      );
+      await approveTokens("ron", ronAmount);
 
       // Then check if KTTY is approved
-      if (!isApproved.ktty) {
-        await approveTokens("ktty");
-      }
+      const _kttyAmount = BigInt(
+        parseFloat(kttyAmount!) * mintAmount * 10 ** 18
+      );
+      await approveTokens("ktty", _kttyAmount);
 
       // Mint with RON + KTTY
+      const selectedNFT = Array.from({ length: mintAmount }, randomNft);
       const hash = await walletClient.writeContract({
         account: account,
         address: NFT_CONTRACT_ADDRESS,
@@ -933,12 +953,11 @@ function Home() {
                           </Text>
                           <NumberInput
                             min={1}
-                            max={10}
+                            max={3}
                             value={mintAmount}
                             onChange={(_, value) => setMintAmount(value)}
                             bg={useColorModeValue("gray.50", "gray.800")}
                             borderRadius="lg"
-                            isDisabled
                           >
                             <NumberInputField borderRadius="lg" />
                             <NumberInputStepper>
@@ -1019,12 +1038,11 @@ function Home() {
                           </Text>
                           <NumberInput
                             min={1}
-                            max={10}
+                            max={3}
                             value={mintAmount}
                             onChange={(_, value) => setMintAmount(value)}
                             bg={useColorModeValue("gray.50", "gray.800")}
                             borderRadius="lg"
-                            isDisabled
                           >
                             <NumberInputField borderRadius="lg" />
                             <NumberInputStepper>
