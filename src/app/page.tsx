@@ -555,14 +555,14 @@ function Home() {
   // Function to mint with RON
   const mintWithRon = async () => {
     try {
-      setLoading(true);
-
       // First check if RON is approved
       const totalAmount = BigInt(parseFloat(ronPrice!) * mintAmount * 10 ** 18);
       await approveTokens("ron", totalAmount);
+      setLoading(true);
 
       // Mint with RON
       const selectedNFT = Array.from({ length: mintAmount }, randomNft);
+      console.log(selectedNFT)
       const hash = await walletClient.writeContract({
         account: account,
         address: NFT_CONTRACT_ADDRESS,
@@ -609,10 +609,7 @@ function Home() {
   // Function to mint with RON + KTTY
   const mintWithRonAndKtty = async () => {
     try {
-      setLoading(true);
-
       // First check if RON is approved
-
       const ronAmount = BigInt(
         parseFloat(discountedRonPrice!) * mintAmount * 10 ** 18
       );
@@ -623,6 +620,7 @@ function Home() {
         parseFloat(kttyAmount!) * mintAmount * 10 ** 18
       );
       await approveTokens("ktty", _kttyAmount);
+      setLoading(true);
 
       // Mint with RON + KTTY
       const selectedNFT = Array.from({ length: mintAmount }, randomNft);
