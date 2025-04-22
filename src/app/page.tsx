@@ -151,7 +151,7 @@ function Home() {
   const borderColor = useColorModeValue("gray.200", "gray.700");
 
   // New state variables for contract integration
-  const [account, setAccount] = useState(null);
+  const [account, setAccount] = useState<string | null>(null);
   const [publicClient, setPublicClient] = useState<any>(null);
   const [walletClient, setWalletClient] = useState<any>(null);
   const [ronPrice, setRonPrice] = useState<string | null>(null);
@@ -162,6 +162,7 @@ function Home() {
   const [availableNFTs, setAvailableNFTs] = useState<number[]>([]);
   const [isApproved, setIsApproved] = useState({ ron: false, ktty: false });
   const [loading, setLoading] = useState(false);
+  const [currentPhase, setCurrentPhase] = useState("0");
 
   const [walletDisplay, setWalletDisplay] = useState("");
   const [balances, setBalances] = useState({ ron: "0", ktty: "0" });
@@ -292,6 +293,15 @@ function Home() {
         abi: NFT_ABI,
         functionName: "nativeTokenAmount",
       });
+
+      const phase = await client.readContract({
+        address: NFT_CONTRACT_ADDRESS,
+        abi: NFT_ABI,
+        functionName: "currentPhase",
+      });
+
+      console.log("Phase:", phase);
+      setCurrentPhase(phase.toString());
 
       // Convert prices from wei
       setRonPrice(formatEther(ronTokenPrice));
@@ -522,9 +532,87 @@ function Home() {
     }
   };
 
+  // Function to check if account is whitelisted
+  const isWhitelisted = async (proof: any) => {
+    try {
+      if (!publicClient || !account) {
+        toast({
+          title: "Wallet client not initialized",
+          description: "Please connect your wallet.",
+          status: "warning",
+          duration: 3000,
+          isClosable: true,
+        });
+        return false;
+      }
+
+      const whitelisted = await publicClient.readContract({
+        address: NFT_CONTRACT_ADDRESS,
+        abi: NFT_ABI,
+        functionName: "isWhitelisted",
+        args: [proof, account],
+      });
+
+      if (!whitelisted) {
+        toast({
+          title: "Unable to mint",
+          description: "You have not been whitelisted for this phase.",
+          status: "warning",
+          duration: 3000,
+          isClosable: true,
+        });
+        return false;
+      }
+    } catch (error) {
+      console.error(`Error checking whitelist`, error);
+      toast({
+        title: "Whitelist check failed",
+        description: "Failed to check whitelist status.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return false;
+    }
+    return true;
+  };
+
   function randomNft() {
     const randomIndex = Math.floor(Math.random() * availableNFTs.length);
     return availableNFTs[randomIndex];
+  }
+
+  async function getProof(address: string, phase: string) {
+    const searchParams = new URLSearchParams();
+    searchParams.append("phase", phase);
+    searchParams.append("address", address);
+    const url = `/api/proof?${searchParams.toString()}`;
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const data = await response.json();
+    console.log("Proof", data.proof);
+
+    return data.proof;
+  }
+
+  async function updateAvailableNFTs() {
+    // Refresh available NFTs
+    const availableIds = await findAvailableNFTs();
+    setAvailableNFTs(availableIds);
+
+    if (availableIds.length == 0) {
+      toast({
+        title: "No More NFTs available",
+        description: "There are no NFTs available for minting.",
+        status: "info",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
   }
 
   async function updateMintedNft(tokenIds: number[]) {
@@ -554,6 +642,26 @@ function Home() {
 
   // Function to mint with RON
   const mintWithRon = async () => {
+    if (!account) {
+      toast({
+        title: "Wallet not connected",
+        description: "Please connect your wallet to mint.",
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+    if (currentPhase === "0") {
+      toast({
+        title: "Minting has not started",
+        description: "Minting is not available at the moment",
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
     try {
       // First check if RON is approved
       const totalAmount = BigInt(parseFloat(ronPrice!) * mintAmount * 10 ** 18);
@@ -561,14 +669,32 @@ function Home() {
       setLoading(true);
 
       // Mint with RON
+      const proof = await getProof(account, currentPhase);
+      const whitelisted = await isWhitelisted(proof);
+      if (!whitelisted) {
+        return;
+      }
+      await updateAvailableNFTs();
+      if (availableNFTs.length == 0) {
+        return;
+      }
+      if (availableNFTs.length < mintAmount) {
+        toast({
+          title: "Not enough NFTs available",
+          description: "Not enough NFTs available for minting.",
+          status: "warning",
+          duration: 3000,
+          isClosable: true,
+        });
+        return;
+      }
       const selectedNFT = Array.from({ length: mintAmount }, randomNft);
-      console.log(selectedNFT)
       const hash = await walletClient.writeContract({
         account: account,
         address: NFT_CONTRACT_ADDRESS,
         abi: NFT_ABI,
         functionName: "mintWithRon",
-        args: [selectedNFT],
+        args: [selectedNFT, proof],
       });
 
       toast({
@@ -608,6 +734,26 @@ function Home() {
 
   // Function to mint with RON + KTTY
   const mintWithRonAndKtty = async () => {
+    if (!account) {
+      toast({
+        title: "Wallet not connected",
+        description: "Please connect your wallet to mint.",
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+    if (currentPhase === "0") {
+      toast({
+        title: "Minting has not started",
+        description: "Minting is not available at the moment",
+        status: "warning",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
     try {
       // First check if RON is approved
       const ronAmount = BigInt(
@@ -623,13 +769,32 @@ function Home() {
       setLoading(true);
 
       // Mint with RON + KTTY
+      const proof = await getProof(account, currentPhase);
+      const whitelisted = await isWhitelisted(proof);
+      if (!whitelisted) {
+        return;
+      }
+      await updateAvailableNFTs();
+      if (availableNFTs.length == 0) {
+        return;
+      }
+      if (availableNFTs.length < mintAmount) {
+        toast({
+          title: "Not enough NFTs available",
+          description: "Not enough NFTs available for minting.",
+          status: "warning",
+          duration: 3000,
+          isClosable: true,
+        });
+        return;
+      }
       const selectedNFT = Array.from({ length: mintAmount }, randomNft);
       const hash = await walletClient.writeContract({
         account: account,
         address: NFT_CONTRACT_ADDRESS,
         abi: NFT_ABI,
         functionName: "mintWithRonAndNative",
-        args: [selectedNFT],
+        args: [selectedNFT, proof],
       });
 
       toast({
@@ -987,7 +1152,8 @@ function Home() {
                           disabled={
                             !isConnected ||
                             availableNFTs.length === 0 ||
-                            loading
+                            loading ||
+                            currentPhase === "0"
                           }
                           _disabled={{ opacity: 0.6, cursor: "not-allowed" }}
                         >
@@ -1084,7 +1250,8 @@ function Home() {
                           disabled={
                             !isConnected ||
                             availableNFTs.length === 0 ||
-                            loading
+                            loading ||
+                            currentPhase === "0"
                           }
                           _disabled={{ opacity: 0.6, cursor: "not-allowed" }}
                           bgGradient="linear(to-r, purple.500, pink.500)"
