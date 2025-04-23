@@ -73,7 +73,6 @@ import {
 } from "@sky-mavis/tanto-connect";
 
 const NFT_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as string;
-const RON_TOKEN_ADDRESS = process.env.NEXT_PUBLIC_RON_ADDRESS as string;
 const KTTY_TOKEN_ADDRESS = process.env.NEXT_PUBLIC_KTTY_ADDRESS as string;
 
 const currentChain =
@@ -160,7 +159,7 @@ function Home() {
   );
   const [kttyAmount, setKttyAmount] = useState<string | null>(null);
   const [availableNFTs, setAvailableNFTs] = useState<number[]>([]);
-  const [isApproved, setIsApproved] = useState({ ron: false, ktty: false });
+  const [isApproved, setIsApproved] = useState({ ktty: false });
   const [loading, setLoading] = useState(false);
   const [currentPhase, setCurrentPhase] = useState("0");
 
@@ -231,6 +230,18 @@ function Home() {
         const account = accounts[0];
 
         setAccount(account);
+
+        provider.handleAccountsChanged = (accounts: string[]) => {
+          if (accounts.length === 0) {
+            setIsConnected(false);
+            setAccount(null);
+            setWalletDisplay("");
+            setBalances({ ron: "0", ktty: "0" });
+            setShowWalletMenu(false);
+          } else {
+            setAccount(accounts[0]);
+          }
+        };
 
         // Create Viem clients
         const publicClient = createPublicClient({
@@ -349,12 +360,7 @@ function Home() {
     console.log("Fetching balances for account:", account);
     try {
       // Get RON balance
-      const ronBalance = await client.readContract({
-        address: RON_TOKEN_ADDRESS,
-        abi: ERC20_ABI,
-        functionName: "balanceOf",
-        args: [account],
-      });
+      const ronBalance = await client.getBalance({ address: account });
 
       // Get KTTY balance
       const kttyBalance = await client.readContract({
@@ -401,27 +407,12 @@ function Home() {
   // Check if tokens are approved for spending
   const checkApprovals = async (client: any, userAccount: any) => {
     try {
-      // Check RON allowance
-      const ronAllowance = await client.readContract({
-        address: RON_TOKEN_ADDRESS,
-        abi: ERC20_ABI,
-        functionName: "allowance",
-        args: [userAccount, NFT_CONTRACT_ADDRESS],
-      });
-
       // Check KTTY allowance
       const kttyAllowance = await client.readContract({
         address: KTTY_TOKEN_ADDRESS,
         abi: ERC20_ABI,
         functionName: "allowance",
         args: [userAccount, NFT_CONTRACT_ADDRESS],
-      });
-
-      // Get required amounts
-      const ronTokenPrice = await client.readContract({
-        address: NFT_CONTRACT_ADDRESS,
-        abi: NFT_ABI,
-        functionName: "ronTokenPrice",
       });
 
       const nativeTokenAmount = await client.readContract({
@@ -432,7 +423,6 @@ function Home() {
 
       // Set approval status
       setIsApproved({
-        ron: ronAllowance >= ronTokenPrice,
         ktty: kttyAllowance >= nativeTokenAmount,
       });
     } catch (error) {
@@ -467,8 +457,7 @@ function Home() {
         return;
       }
 
-      const tokenAddress =
-        tokenType === "ron" ? RON_TOKEN_ADDRESS : KTTY_TOKEN_ADDRESS;
+      const tokenAddress = KTTY_TOKEN_ADDRESS;
 
       // 1) Read the existing allowance via publicClient (read‑only)
       const currentAllowance = await publicClient.readContract({
@@ -547,10 +536,11 @@ function Home() {
       }
 
       const whitelisted = await publicClient.readContract({
+        account: account,
         address: NFT_CONTRACT_ADDRESS,
         abi: NFT_ABI,
         functionName: "isWhitelisted",
-        args: [proof, account],
+        args: [proof, BigInt(currentPhase)],
       });
 
       if (!whitelisted) {
@@ -637,7 +627,7 @@ function Home() {
       });
     }
 
-    setIsApproved({ ron: false, ktty: false });
+    setIsApproved({ ktty: false });
   }
 
   // Function to mint with RON
@@ -665,11 +655,12 @@ function Home() {
     try {
       // First check if RON is approved
       const totalAmount = BigInt(parseFloat(ronPrice!) * mintAmount * 10 ** 18);
-      await approveTokens("ron", totalAmount);
+      console.log("totalAmount", totalAmount)
       setLoading(true);
 
       // Mint with RON
       const proof = await getProof(account, currentPhase);
+      console.log("Proof", proof);
       const whitelisted = await isWhitelisted(proof);
       if (!whitelisted) {
         return;
@@ -695,6 +686,7 @@ function Home() {
         abi: NFT_ABI,
         functionName: "mintWithRon",
         args: [selectedNFT, proof],
+        value: totalAmount,
       });
 
       toast({
@@ -759,7 +751,6 @@ function Home() {
       const ronAmount = BigInt(
         parseFloat(discountedRonPrice!) * mintAmount * 10 ** 18
       );
-      await approveTokens("ron", ronAmount);
 
       // Then check if KTTY is approved
       const _kttyAmount = BigInt(
@@ -795,6 +786,7 @@ function Home() {
         abi: NFT_ABI,
         functionName: "mintWithRonAndNative",
         args: [selectedNFT, proof],
+        value: ronAmount,
       });
 
       toast({
@@ -982,13 +974,13 @@ function Home() {
                         <HStack justify="space-between">
                           <Text fontSize="sm">RON Balance</Text>
                           <Text fontSize="sm" fontWeight="bold">
-                            {parseInt(balances.ron).toLocaleString()}
+                            {parseFloat(balances.ron).toLocaleString()}
                           </Text>
                         </HStack>
                         <HStack justify="space-between" mt={1}>
                           <Text fontSize="sm">KTTY Balance</Text>
                           <Text fontSize="sm" fontWeight="bold">
-                            {parseInt(balances.ktty).toLocaleString()}
+                            {parseFloat(balances.ktty).toLocaleString()}
                           </Text>
                         </HStack>
                       </Box>
@@ -1137,7 +1129,7 @@ function Home() {
                           <Text fontWeight="bold" fontSize="lg">
                             {ronPrice
                               ? `${(parseFloat(ronPrice) * mintAmount).toFixed(
-                                  2
+                                  3
                                 )} RON`
                               : "Loading..."}
                           </Text>
@@ -1159,8 +1151,6 @@ function Home() {
                         >
                           {!isConnected
                             ? "Connect Wallet to Mint"
-                            : !isApproved.ron
-                            ? "Approve RON"
                             : "Mint with RON"}
                         </Button>
                       </VStack>
@@ -1225,7 +1215,7 @@ function Home() {
                               {discountedRonPrice
                                 ? `${(
                                     parseFloat(discountedRonPrice) * mintAmount
-                                  ).toFixed(2)} RON`
+                                  ).toFixed(3)} RON`
                                 : "Loading..."}
                             </Text>
                             <Text
@@ -1235,7 +1225,7 @@ function Home() {
                               {kttyAmount
                                 ? `+ ${(
                                     parseFloat(kttyAmount) * mintAmount
-                                  ).toFixed(0)} KTTY`
+                                  ).toFixed(3)} KTTY`
                                 : "Loading..."}
                             </Text>
                           </VStack>
@@ -1263,7 +1253,7 @@ function Home() {
                         >
                           {!isConnected
                             ? "Connect Wallet to Mint"
-                            : !isApproved.ron || !isApproved.ktty
+                            : !isApproved.ktty
                             ? "Approve Tokens"
                             : "Mint with RON + KTTY"}
                         </Button>
