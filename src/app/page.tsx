@@ -1302,16 +1302,19 @@ function Home() {
                   title: "Open 3D World",
                   description:
                     "A dynamic and evolving experience that blends adventure, strategy, and social gameplay.",
+                    icon: "/tamer.png",
                 },
                 {
                   title: "Train & Breed KTTYs",
                   description:
                     "Breed your companions, creating entirely new generations with unique traits and potential.",
+                    icon: "/ktty.png",
                 },
                 {
                   title: "Play and Earn $KTTY",
                   description:
                     "Earn $KTTY as you explore, hunt and compete alongside your KTTYs",
+                    icon: "/kttytoken.png",
                 },
               ].map((feature, idx) => (
                 <Box
@@ -1330,9 +1333,12 @@ function Home() {
                   }}
                 >
                   <VStack align="flex-start" spacing={4}>
-                    <Box p={3} borderRadius="lg" bg={clr1} color={accentColor}>
-                      <SiTarget />
-                    </Box>
+                  <Image
+  src={feature.icon}
+  alt={feature.title}
+  boxSize="40px"
+  objectFit="contain"
+/>
                     <Heading size="md">{feature.title}</Heading>
                     <Text>{feature.description}</Text>
                   </VStack>
