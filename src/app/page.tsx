@@ -50,8 +50,6 @@ import {
 import { keyframes } from "@emotion/react";
 import { css } from "@emotion/css";
 import {
-  FaMoon,
-  FaSun,
   FaTwitter,
   FaDiscord,
   FaGithub,
@@ -913,15 +911,6 @@ function Home() {
               />
               </Link>
             </HStack>
-
-            <IconButton
-              aria-label="Toggle dark mode"
-              icon={colorMode === "dark" ? <FaSun /> : <FaMoon />}
-              onClick={toggleColorMode}
-              variant="ghost"
-              color={accentColor}
-              _hover={{ bg: clr2 }}
-            />
 
             {isConnected ? (
               <Box position="relative">
