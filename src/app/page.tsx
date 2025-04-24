@@ -137,7 +137,6 @@ function Home() {
     });
   }, []);
 
-  const { colorMode, toggleColorMode } = useColorMode();
   const [mintAmount, setMintAmount] = useState(1);
   const [isConnected, setIsConnected] = useState(false);
   const toast = useToast();
