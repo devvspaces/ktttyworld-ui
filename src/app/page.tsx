@@ -45,6 +45,7 @@ import {
   Badge,
   Divider,
   useToast,
+  Link
 } from "@chakra-ui/react";
 import { keyframes } from "@emotion/react";
 import { css } from "@emotion/css";
@@ -1277,9 +1278,19 @@ function Home() {
       >
         <Container maxW="container.xl">
           <VStack spacing={12}>
-            <VStack spacing={3} textAlign="center">
-              <Heading size="xl">What is KTTY World?</Heading>
-            </VStack>
+           <VStack spacing={3} textAlign="center">
+  <Heading size="xl">What is KTTY World?</Heading>
+  <Link
+    href="https://ktty-world.gitbook.io/ktty-world"
+    isExternal
+    color="teal.500"
+    fontSize="md"
+    fontWeight="medium"
+  >
+    Read more at ktty-world.gitbook.io
+  </Link>
+</VStack>
+
 
             <Stack
               direction={{ base: "column", md: "row" }}
