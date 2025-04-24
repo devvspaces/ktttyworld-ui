@@ -1039,7 +1039,7 @@ function Home() {
               _hover={{ transform: "scale(1.02)" }}
             >
               <Image
-                src={"/logo.png"}
+                src={"/tamergif.gif"}
                 alt="NFT Preview"
                 objectFit="cover"
                 w={"100%"}
@@ -1064,10 +1064,10 @@ function Home() {
                 bgGradient="linear(to-r, purple.400, pink.400)"
                 bgClip="text"
               >
-                KttyWorld Mint Collection
+                KTTY World Tamers Collection
               </Heading>
               <Text fontSize="lg" opacity={0.8}>
-                Mint your exclusive NFTs using RON or combine RON with KTTY
+                Mint your Tamer and take the first steps into the world of Felycia! You can mint using RON or combine RON with KTTY
                 tokens for special discounts.
               </Text>
             </VStack>
@@ -1278,11 +1278,7 @@ function Home() {
         <Container maxW="container.xl">
           <VStack spacing={12}>
             <VStack spacing={3} textAlign="center">
-              <Heading size="xl">Why Choose KttyWorld</Heading>
-              <Text fontSize="lg" maxW="container.md" mx="auto" opacity={0.8}>
-                Experience seamless minting with dual-token options and
-                exclusive benefits
-              </Text>
+              <Heading size="xl">What is KTTY World?</Heading>
             </VStack>
 
             <Stack
@@ -1292,19 +1288,19 @@ function Home() {
             >
               {[
                 {
-                  title: "KTTY Token Utility",
+                  title: "Open 3D World",
                   description:
-                    "Use your KTTY tokens for discounts and exclusive access to special NFT collections.",
+                    "A dynamic and evolving experience that blends adventure, strategy, and social gameplay.",
                 },
                 {
-                  title: "RON Integration",
+                  title: "Train & Breed KTTYs",
                   description:
-                    "Seamless minting using RON tokens from the Ronin blockchain ecosystem.",
+                    "Breed your companions, creating entirely new generations with unique traits and potential.",
                 },
                 {
-                  title: "Community Benefits",
+                  title: "Play and Earn $KTTY",
                   description:
-                    "NFT holders gain access to exclusive community events and future airdrops.",
+                    "Earn $KTTY as you explore, hunt and compete alongside your KTTYs",
                 },
               ].map((feature, idx) => (
                 <Box
@@ -1353,24 +1349,6 @@ function Home() {
             align={{ base: "center", md: "flex-start" }}
             gap={8}
           >
-            <VStack align={{ base: "center", md: "flex-start" }} spacing={4}>
-              <Text
-                fontSize="2xl"
-                fontWeight="bold"
-                bgGradient="linear(to-r, purple.400, pink.400)"
-                bgClip="text"
-              >
-                KttyWorld
-              </Text>
-              <Text
-                maxW="md"
-                textAlign={{ base: "center", md: "left" }}
-                opacity={0.8}
-              >
-                The next generation NFT minting experience with dual-token
-                economy and unique utilities.
-              </Text>
-            </VStack>
 
             <HStack spacing={6}>
               <IconButton
@@ -1406,7 +1384,7 @@ function Home() {
             gap={4}
           >
             <Text fontSize="sm" opacity={0.7}>
-              © 2025 KttyWorld. All rights reserved.
+              © 2025 KTTY World. All rights reserved.
             </Text>
             <HStack spacing={6}>
               <Text
