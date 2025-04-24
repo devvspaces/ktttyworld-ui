@@ -54,7 +54,6 @@ import {
   FaSun,
   FaTwitter,
   FaDiscord,
-  FaTelegram,
   FaGithub,
 } from "react-icons/fa";
 import { SiTarget } from "react-icons/si";
