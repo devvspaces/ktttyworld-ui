@@ -50,6 +50,8 @@ import {
 import { keyframes } from "@emotion/react";
 import { css } from "@emotion/css";
 import {
+  FaMoon,
+  FaSun,
   FaTwitter,
   FaDiscord,
   FaGithub,
@@ -137,6 +139,7 @@ function Home() {
     });
   }, []);
 
+  const { colorMode, toggleColorMode } = useColorMode();
   const [mintAmount, setMintAmount] = useState(1);
   const [isConnected, setIsConnected] = useState(false);
   const toast = useToast();
@@ -910,6 +913,15 @@ function Home() {
               />
               </Link>
             </HStack>
+
+            <IconButton
+              aria-label="Toggle dark mode"
+              icon={colorMode === "dark" ? <FaSun /> : <FaMoon />}
+              onClick={toggleColorMode}
+              variant="ghost"
+              color={accentColor}
+              _hover={{ bg: clr2 }}
+            />
 
             {isConnected ? (
               <Box position="relative">
