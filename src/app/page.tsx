@@ -1362,6 +1362,7 @@ function Home() {
           >
 
             <HStack spacing={6}>
+            <Link href="https://x.com/Kttyworld" isExternal>
               <IconButton
                 aria-label="Twitter"
                 icon={<FaTwitter />}
@@ -1369,6 +1370,8 @@ function Home() {
                 color={accentColor}
                 fontSize="xl"
               />
+               </Link>
+               <Link href="https://discord.gg/sC3Hv46BKC" isExternal>
               <IconButton
                 aria-label="Discord"
                 icon={<FaDiscord />}
@@ -1376,13 +1379,16 @@ function Home() {
                 color={accentColor}
                 fontSize="xl"
               />
+              </Link>
+              <Link href="https://ktty-world.gitbook.io/ktty-world" isExternal>
               <IconButton
-                aria-label="Telegram"
+                aria-label="Github"
                 icon={<FaTelegram />}
                 variant="ghost"
                 color={accentColor}
                 fontSize="xl"
               />
+              </Link>
             </HStack>
           </Flex>
 
