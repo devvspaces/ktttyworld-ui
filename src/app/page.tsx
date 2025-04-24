@@ -55,6 +55,7 @@ import {
   FaTwitter,
   FaDiscord,
   FaTelegram,
+  FaGithub,
 } from "react-icons/fa";
 import { SiTarget } from "react-icons/si";
 import {
@@ -885,6 +886,7 @@ function Home() {
                 animation: ${fadeIn} 1s ease-out;
               `}
             >
+              <Link href="https://x.com/Kttyworld" isExternal>
               <IconButton
                 aria-label="Twitter"
                 icon={<FaTwitter />}
@@ -892,6 +894,8 @@ function Home() {
                 color={accentColor}
                 _hover={{ bg: clr2 }}
               />
+              </Link>
+              <Link href="https://discord.gg/sC3Hv46BKC" isExternal>
               <IconButton
                 aria-label="Discord"
                 icon={<FaDiscord />}
@@ -899,23 +903,17 @@ function Home() {
                 color={accentColor}
                 _hover={{ bg: clr2 }}
               />
+              </Link>
+              <Link href="https://ktty-world.gitbook.io/ktty-world" isExternal>
               <IconButton
-                aria-label="Telegram"
-                icon={<FaTelegram />}
+                aria-label="GitHub"
+                icon={<FaGithub />}
                 variant="ghost"
                 color={accentColor}
                 _hover={{ bg: clr2 }}
               />
+              </Link>
             </HStack>
-
-            <IconButton
-              aria-label="Toggle dark mode"
-              icon={colorMode === "dark" ? <FaSun /> : <FaMoon />}
-              onClick={toggleColorMode}
-              variant="ghost"
-              color={accentColor}
-              _hover={{ bg: clr2 }}
-            />
 
             {isConnected ? (
               <Box position="relative">
@@ -1383,7 +1381,7 @@ function Home() {
               <Link href="https://ktty-world.gitbook.io/ktty-world" isExternal>
               <IconButton
                 aria-label="Github"
-                icon={<FaTelegram />}
+                icon={<FaGithub />}
                 variant="ghost"
                 color={accentColor}
                 fontSize="xl"
