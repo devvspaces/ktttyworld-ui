@@ -1409,35 +1409,6 @@ function Home() {
             <Text fontSize="sm" opacity={0.7}>
               © 2025 KTTY World. All rights reserved.
             </Text>
-            <HStack spacing={6}>
-              <Text
-                as="a"
-                href="#"
-                fontSize="sm"
-                opacity={0.7}
-                _hover={{ opacity: 1 }}
-              >
-                Terms of Service
-              </Text>
-              <Text
-                as="a"
-                href="#"
-                fontSize="sm"
-                opacity={0.7}
-                _hover={{ opacity: 1 }}
-              >
-                Privacy Policy
-              </Text>
-              <Text
-                as="a"
-                href="#"
-                fontSize="sm"
-                opacity={0.7}
-                _hover={{ opacity: 1 }}
-              >
-                FAQ
-              </Text>
-            </HStack>
           </Flex>
         </Container>
       </Box>
