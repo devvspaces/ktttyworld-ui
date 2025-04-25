@@ -5,16 +5,24 @@ const supabase = createClient(
   process.env.SUPABASE_KEY as string
 );
 export async function GET() {
-  const { data, error } = await supabase
-    .from("nft_status")
-    .select()
-    .eq("available", true);
-  if (error) {
-    console.error("Error fetching data from Supabase:", error);
-    return Response.json({ error: "Error fetching data" }, { status: 500 });
+  const BATCH = 1000;
+  let allRows: { token_id: number }[] = [];
+  for (let from = 0; ; from += BATCH) {
+    const to = from + BATCH - 1;
+    const { data, error } = await supabase
+      .from("nft_status")
+      .select("token_id")
+      .eq("available", true)
+      .range(from, to);
+    if (error) throw error;
+    allRows.push(...data!);
+    // once you get fewer than BATCH, you’re done
+    if (data!.length < BATCH) break;
   }
 
-  const token_ids = data?.map((item) => item.token_id);
+  // 2. Extract just the IDs
+  let token_ids = allRows.map((r) => r.token_id);
+  console.log("Total fetched:", token_ids.length);
 
   return Response.json({ token_ids });
 }

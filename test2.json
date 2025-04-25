@@ -1,6 +1,9 @@
 {
-  "name": "Hidden Tamar #0001",
+  "name": "Opened Tamar #0001",
   "description": "Character Profile – Tamar, a legendary Cat Whisperer clad in a frog outfit, known for his mystical connection to feline spirits.",
+  "video": "https://ipfs.io/ipfs/bafybeie5imirmxc5yi6mcze3rehemwsizim5pyh55jlh42d45wozhzmpd4",
+  "animation_url": "https://ipfs.io/ipfs/bafybeie5imirmxc5yi6mcze3rehemwsizim5pyh55jlh42d45wozhzmpd4",
+  "image": "https://peach-necessary-primate-505.mypinata.cloud/ipfs/bafkreicpxbbirheu3sxpu7ldwalsgsw5a26p3h4ee4rq56ugcig2xuytei",
   "attributes": [
     {
       "trait_type": "Eye Type",
@@ -14,6 +17,5 @@
       "trait_type": "Tamar Type",
       "value": "Boy – A young but powerful Tamar, embodying agility, strength, and deep wisdom."
     }
-  ],
-  "image": "https://peach-necessary-primate-505.mypinata.cloud/ipfs/bafkreigahkw4pdp23vxj2bqr66l3cczhzpurc73udbwxdpupi4o3zj3yv4"
+  ]
 }
