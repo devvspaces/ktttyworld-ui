@@ -6,7 +6,7 @@ const supabase = createClient(
 );
 export async function GET() {
   const BATCH = 1000;
-  let allRows: { token_id: number }[] = [];
+  const allRows: { token_id: number }[] = [];
   for (let from = 0; ; from += BATCH) {
     const to = from + BATCH - 1;
     const { data, error } = await supabase
@@ -21,7 +21,7 @@ export async function GET() {
   }
 
   // 2. Extract just the IDs
-  let token_ids = allRows.map((r) => r.token_id);
+  const token_ids = allRows.map((r) => r.token_id);
   console.log("Total fetched:", token_ids.length);
 
   return Response.json({ token_ids });
