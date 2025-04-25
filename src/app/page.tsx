@@ -66,6 +66,7 @@ import {
   custom,
 } from "viem";
 import { saigon, ronin } from "viem/chains";
+import CountdownBadge from "./CountdownBadge";
 import { abi } from "@/lib/abi.json";
 import {
   ConnectorError,
@@ -1057,15 +1058,7 @@ function Home() {
           {/* Right side - Mint Interface */}
           <VStack flex="1" spacing={8} alignItems="flex-start">
             <VStack alignItems="flex-start" spacing={3}>
-              <Badge
-                colorScheme="purple"
-                fontSize="md"
-                py={1}
-                px={3}
-                borderRadius="full"
-              >
-                Minting Now
-              </Badge>
+            <CountdownBadge />
               <Heading
                 size="2xl"
                 bgGradient="linear(to-r, purple.400, pink.400)"
