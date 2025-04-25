@@ -45,6 +45,7 @@ import {
   Badge,
   Divider,
   useToast,
+  Link
 } from "@chakra-ui/react";
 import { keyframes } from "@emotion/react";
 import { css } from "@emotion/css";
@@ -53,7 +54,7 @@ import {
   FaSun,
   FaTwitter,
   FaDiscord,
-  FaTelegram,
+  FaGithub,
 } from "react-icons/fa";
 import { SiTarget } from "react-icons/si";
 import {
@@ -65,6 +66,7 @@ import {
   custom,
 } from "viem";
 import { saigon, ronin } from "viem/chains";
+import CountdownBadge from "./CountdownBadge";
 import { abi } from "@/lib/abi.json";
 import {
   ConnectorError,
@@ -884,6 +886,7 @@ function Home() {
                 animation: ${fadeIn} 1s ease-out;
               `}
             >
+              <Link href="https://x.com/Kttyworld" isExternal>
               <IconButton
                 aria-label="Twitter"
                 icon={<FaTwitter />}
@@ -891,6 +894,8 @@ function Home() {
                 color={accentColor}
                 _hover={{ bg: clr2 }}
               />
+              </Link>
+              <Link href="https://discord.gg/sC3Hv46BKC" isExternal>
               <IconButton
                 aria-label="Discord"
                 icon={<FaDiscord />}
@@ -898,13 +903,16 @@ function Home() {
                 color={accentColor}
                 _hover={{ bg: clr2 }}
               />
+              </Link>
+              <Link href="https://ktty-world.gitbook.io/ktty-world" isExternal>
               <IconButton
-                aria-label="Telegram"
-                icon={<FaTelegram />}
+                aria-label="GitHub"
+                icon={<FaGithub />}
                 variant="ghost"
                 color={accentColor}
                 _hover={{ bg: clr2 }}
               />
+              </Link>
             </HStack>
 
             <IconButton
@@ -1039,7 +1047,7 @@ function Home() {
               _hover={{ transform: "scale(1.02)" }}
             >
               <Image
-                src={"/logo.png"}
+                src={"/tamergif.gif"}
                 alt="NFT Preview"
                 objectFit="cover"
                 w={"100%"}
@@ -1050,24 +1058,16 @@ function Home() {
           {/* Right side - Mint Interface */}
           <VStack flex="1" spacing={8} alignItems="flex-start">
             <VStack alignItems="flex-start" spacing={3}>
-              <Badge
-                colorScheme="purple"
-                fontSize="md"
-                py={1}
-                px={3}
-                borderRadius="full"
-              >
-                Minting Now
-              </Badge>
+            <CountdownBadge />
               <Heading
                 size="2xl"
                 bgGradient="linear(to-r, purple.400, pink.400)"
                 bgClip="text"
               >
-                KttyWorld Mint Collection
+                KTTY World Tamers Collection
               </Heading>
               <Text fontSize="lg" opacity={0.8}>
-                Mint your exclusive NFTs using RON or combine RON with KTTY
+                Mint your Tamer and take the first steps into the world of Felycia! You can mint using RON or combine RON with KTTY
                 tokens for special discounts.
               </Text>
             </VStack>
@@ -1277,13 +1277,19 @@ function Home() {
       >
         <Container maxW="container.xl">
           <VStack spacing={12}>
-            <VStack spacing={3} textAlign="center">
-              <Heading size="xl">Why Choose KttyWorld</Heading>
-              <Text fontSize="lg" maxW="container.md" mx="auto" opacity={0.8}>
-                Experience seamless minting with dual-token options and
-                exclusive benefits
-              </Text>
-            </VStack>
+           <VStack spacing={3} textAlign="center">
+  <Heading size="xl">What is KTTY World?</Heading>
+  <Link
+    href="https://ktty-world.gitbook.io/ktty-world"
+    isExternal
+    color="teal.500"
+    fontSize="md"
+    fontWeight="medium"
+  >
+    Read more at ktty-world.gitbook.io
+  </Link>
+</VStack>
+
 
             <Stack
               direction={{ base: "column", md: "row" }}
@@ -1292,19 +1298,19 @@ function Home() {
             >
               {[
                 {
-                  title: "KTTY Token Utility",
+                  title: "Open 3D World",
                   description:
-                    "Use your KTTY tokens for discounts and exclusive access to special NFT collections.",
+                    "A dynamic and evolving experience that blends adventure, strategy, and social gameplay.",
                 },
                 {
-                  title: "RON Integration",
+                  title: "Train & Breed KTTYs",
                   description:
-                    "Seamless minting using RON tokens from the Ronin blockchain ecosystem.",
+                    "Breed your companions, creating entirely new generations with unique traits and potential.",
                 },
                 {
-                  title: "Community Benefits",
+                  title: "Play and Earn $KTTY",
                   description:
-                    "NFT holders gain access to exclusive community events and future airdrops.",
+                    "Earn $KTTY as you explore, hunt and compete alongside your KTTYs",
                 },
               ].map((feature, idx) => (
                 <Box
@@ -1353,26 +1359,9 @@ function Home() {
             align={{ base: "center", md: "flex-start" }}
             gap={8}
           >
-            <VStack align={{ base: "center", md: "flex-start" }} spacing={4}>
-              <Text
-                fontSize="2xl"
-                fontWeight="bold"
-                bgGradient="linear(to-r, purple.400, pink.400)"
-                bgClip="text"
-              >
-                KttyWorld
-              </Text>
-              <Text
-                maxW="md"
-                textAlign={{ base: "center", md: "left" }}
-                opacity={0.8}
-              >
-                The next generation NFT minting experience with dual-token
-                economy and unique utilities.
-              </Text>
-            </VStack>
 
             <HStack spacing={6}>
+            <Link href="https://x.com/Kttyworld" isExternal>
               <IconButton
                 aria-label="Twitter"
                 icon={<FaTwitter />}
@@ -1380,6 +1369,8 @@ function Home() {
                 color={accentColor}
                 fontSize="xl"
               />
+               </Link>
+               <Link href="https://discord.gg/sC3Hv46BKC" isExternal>
               <IconButton
                 aria-label="Discord"
                 icon={<FaDiscord />}
@@ -1387,13 +1378,16 @@ function Home() {
                 color={accentColor}
                 fontSize="xl"
               />
+              </Link>
+              <Link href="https://ktty-world.gitbook.io/ktty-world" isExternal>
               <IconButton
-                aria-label="Telegram"
-                icon={<FaTelegram />}
+                aria-label="Github"
+                icon={<FaGithub />}
                 variant="ghost"
                 color={accentColor}
                 fontSize="xl"
               />
+              </Link>
             </HStack>
           </Flex>
 
@@ -1406,37 +1400,8 @@ function Home() {
             gap={4}
           >
             <Text fontSize="sm" opacity={0.7}>
-              © 2025 KttyWorld. All rights reserved.
+              © 2025 KTTY World. All rights reserved.
             </Text>
-            <HStack spacing={6}>
-              <Text
-                as="a"
-                href="#"
-                fontSize="sm"
-                opacity={0.7}
-                _hover={{ opacity: 1 }}
-              >
-                Terms of Service
-              </Text>
-              <Text
-                as="a"
-                href="#"
-                fontSize="sm"
-                opacity={0.7}
-                _hover={{ opacity: 1 }}
-              >
-                Privacy Policy
-              </Text>
-              <Text
-                as="a"
-                href="#"
-                fontSize="sm"
-                opacity={0.7}
-                _hover={{ opacity: 1 }}
-              >
-                FAQ
-              </Text>
-            </HStack>
           </Flex>
         </Container>
       </Box>
