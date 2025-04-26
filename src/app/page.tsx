@@ -461,31 +461,12 @@ function Home() {
 
       const tokenAddress = KTTY_TOKEN_ADDRESS;
 
-      // 1) Read the existing allowance via publicClient (read‑only)
-      const currentAllowance = await publicClient.readContract({
-        address: tokenAddress,
-        abi: ERC20_ABI,
-        functionName: "allowance",
-        args: [account, NFT_CONTRACT_ADDRESS],
-      });
-
-      if (currentAllowance >= amount) {
-        toast({
-          title: "Already approved",
-          description: `You’ve already approved enough ${tokenType.toUpperCase()}.`,
-          status: "info",
-          duration: 3000,
-          isClosable: true,
-        });
-        return;
-      }
-
       const hash = await walletClient.writeContract({
         account: account,
         address: tokenAddress,
         abi: ERC20_ABI,
         functionName: "approve",
-        args: [NFT_CONTRACT_ADDRESS, amount - currentAllowance],
+        args: [NFT_CONTRACT_ADDRESS, amount],
       });
 
       toast({
@@ -785,6 +766,7 @@ function Home() {
         return;
       }
       const selectedNFT = Array.from({ length: mintAmount }, randomNft);
+      console.log("Selected NFT", selectedNFT)
       const hash = await walletClient.writeContract({
         account: account,
         address: NFT_CONTRACT_ADDRESS,
