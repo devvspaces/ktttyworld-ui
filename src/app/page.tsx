@@ -575,6 +575,9 @@ function Home() {
   }
 
   async function getProof(address: string, phase: string) {
+    if (currentPhase === "4") {
+      return []
+    }
     const searchParams = new URLSearchParams();
     searchParams.append("phase", phase);
     searchParams.append("address", address);
