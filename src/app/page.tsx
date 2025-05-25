@@ -45,17 +45,11 @@ import {
   Badge,
   Divider,
   useToast,
-  Link
+  Link,
 } from "@chakra-ui/react";
 import { keyframes } from "@emotion/react";
 import { css } from "@emotion/css";
-import {
-  FaMoon,
-  FaSun,
-  FaTwitter,
-  FaDiscord,
-  FaGithub,
-} from "react-icons/fa";
+import { FaMoon, FaSun, FaTwitter, FaDiscord, FaGithub } from "react-icons/fa";
 import { SiTarget } from "react-icons/si";
 import {
   createPublicClient,
@@ -68,6 +62,7 @@ import {
 import { saigon, ronin } from "viem/chains";
 import CountdownBadge from "./CountdownBadge";
 import { abi } from "@/lib/abi.json";
+import { abi as MasterMinterABI } from "@/lib/MasterMinterABI.json"; // You'll need to add this ABI file
 import {
   ConnectorError,
   ConnectorErrorType,
@@ -76,6 +71,8 @@ import {
 
 const NFT_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS as string;
 const KTTY_TOKEN_ADDRESS = process.env.NEXT_PUBLIC_KTTY_ADDRESS as string;
+const MASTER_MINTER_ADDRESS = process.env
+  .NEXT_PUBLIC_MASTER_MINTER_ADDRESS as string;
 
 const currentChain =
   (process.env.NEXT_PUBLIC_CHAIN as string) === "ronin" ? ronin : saigon;
@@ -466,7 +463,7 @@ function Home() {
         address: tokenAddress,
         abi: ERC20_ABI,
         functionName: "approve",
-        args: [NFT_CONTRACT_ADDRESS, amount],
+        args: [MASTER_MINTER_ADDRESS, amount],
       });
 
       toast({
@@ -557,7 +554,7 @@ function Home() {
 
   async function getProof(address: string, phase: string) {
     if (currentPhase === "4") {
-      return []
+      return [];
     }
     const searchParams = new URLSearchParams();
     searchParams.append("phase", phase);
@@ -641,7 +638,7 @@ function Home() {
     try {
       // First check if RON is approved
       const totalAmount = BigInt(parseFloat(ronPrice!) * mintAmount * 10 ** 18);
-      console.log("totalAmount", totalAmount)
+      console.log("totalAmount", totalAmount);
       setLoading(true);
 
       // Mint with RON
@@ -668,8 +665,8 @@ function Home() {
       const selectedNFT = Array.from({ length: mintAmount }, randomNft);
       const hash = await walletClient.writeContract({
         account: account,
-        address: NFT_CONTRACT_ADDRESS,
-        abi: NFT_ABI,
+        address: MASTER_MINTER_ADDRESS,
+        abi: MasterMinterABI,
         functionName: "mintWithRon",
         args: [selectedNFT, proof],
         value: totalAmount,
@@ -766,11 +763,11 @@ function Home() {
         return;
       }
       const selectedNFT = Array.from({ length: mintAmount }, randomNft);
-      console.log("Selected NFT", selectedNFT)
+      console.log("Selected NFT", selectedNFT);
       const hash = await walletClient.writeContract({
         account: account,
-        address: NFT_CONTRACT_ADDRESS,
-        abi: NFT_ABI,
+        address: MASTER_MINTER_ADDRESS,
+        abi: MasterMinterABI,
         functionName: "mintWithRonAndNative",
         args: [selectedNFT, proof],
         value: ronAmount,
@@ -872,31 +869,31 @@ function Home() {
               `}
             >
               <Link href="https://x.com/Kttyworld" isExternal>
-              <IconButton
-                aria-label="Twitter"
-                icon={<FaTwitter />}
-                variant="ghost"
-                color={accentColor}
-                _hover={{ bg: clr2 }}
-              />
+                <IconButton
+                  aria-label="Twitter"
+                  icon={<FaTwitter />}
+                  variant="ghost"
+                  color={accentColor}
+                  _hover={{ bg: clr2 }}
+                />
               </Link>
               <Link href="https://discord.gg/sC3Hv46BKC" isExternal>
-              <IconButton
-                aria-label="Discord"
-                icon={<FaDiscord />}
-                variant="ghost"
-                color={accentColor}
-                _hover={{ bg: clr2 }}
-              />
+                <IconButton
+                  aria-label="Discord"
+                  icon={<FaDiscord />}
+                  variant="ghost"
+                  color={accentColor}
+                  _hover={{ bg: clr2 }}
+                />
               </Link>
               <Link href="https://ktty-world.gitbook.io/ktty-world" isExternal>
-              <IconButton
-                aria-label="GitHub"
-                icon={<FaGithub />}
-                variant="ghost"
-                color={accentColor}
-                _hover={{ bg: clr2 }}
-              />
+                <IconButton
+                  aria-label="GitHub"
+                  icon={<FaGithub />}
+                  variant="ghost"
+                  color={accentColor}
+                  _hover={{ bg: clr2 }}
+                />
               </Link>
             </HStack>
 
@@ -1043,7 +1040,7 @@ function Home() {
           {/* Right side - Mint Interface */}
           <VStack flex="1" spacing={8} alignItems="flex-start">
             <VStack alignItems="flex-start" spacing={3}>
-            <CountdownBadge />
+              <CountdownBadge />
               <Heading
                 size="2xl"
                 bgGradient="linear(to-r, purple.400, pink.400)"
@@ -1052,8 +1049,9 @@ function Home() {
                 KTTY World Tamers Collection
               </Heading>
               <Text fontSize="lg" opacity={0.8}>
-                Mint your Tamer and take the first steps into the world of Felycia! You can mint using RON or combine RON with KTTY
-                tokens for special discounts.
+                Mint your Tamer and take the first steps into the world of
+                Felycia! You can mint using RON or combine RON with KTTY tokens
+                for special discounts.
               </Text>
             </VStack>
 
@@ -1093,7 +1091,7 @@ function Home() {
                           </Text>
                           <NumberInput
                             min={1}
-                            max={3}
+                            max={50}
                             value={mintAmount}
                             onChange={(_, value) => setMintAmount(value)}
                             bg={useColorModeValue("gray.50", "gray.800")}
@@ -1105,6 +1103,38 @@ function Home() {
                               <NumberDecrementStepper />
                             </NumberInputStepper>
                           </NumberInput>
+
+                          {/* Add quick select buttons */}
+                          <HStack spacing={2} mt={2}>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setMintAmount(5)}
+                            >
+                              5
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setMintAmount(10)}
+                            >
+                              10
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setMintAmount(25)}
+                            >
+                              25
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setMintAmount(50)}
+                            >
+                              50
+                            </Button>
+                          </HStack>
                         </Box>
 
                         <Divider />
@@ -1177,7 +1207,7 @@ function Home() {
                           </Text>
                           <NumberInput
                             min={1}
-                            max={3}
+                            max={50}
                             value={mintAmount}
                             onChange={(_, value) => setMintAmount(value)}
                             bg={useColorModeValue("gray.50", "gray.800")}
@@ -1189,6 +1219,37 @@ function Home() {
                               <NumberDecrementStepper />
                             </NumberInputStepper>
                           </NumberInput>
+                          {/* Add quick select buttons */}
+                          <HStack spacing={2} mt={2}>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setMintAmount(5)}
+                            >
+                              5
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setMintAmount(10)}
+                            >
+                              10
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setMintAmount(25)}
+                            >
+                              25
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setMintAmount(50)}
+                            >
+                              50
+                            </Button>
+                          </HStack>
                         </Box>
 
                         <Divider />
@@ -1262,19 +1323,18 @@ function Home() {
       >
         <Container maxW="container.xl">
           <VStack spacing={12}>
-           <VStack spacing={3} textAlign="center">
-  <Heading size="xl">What is KTTY World?</Heading>
-  <Link
-    href="https://ktty-world.gitbook.io/ktty-world"
-    isExternal
-    color="teal.500"
-    fontSize="md"
-    fontWeight="medium"
-  >
-    Read more at ktty-world.gitbook.io
-  </Link>
-</VStack>
-
+            <VStack spacing={3} textAlign="center">
+              <Heading size="xl">What is KTTY World?</Heading>
+              <Link
+                href="https://ktty-world.gitbook.io/ktty-world"
+                isExternal
+                color="teal.500"
+                fontSize="md"
+                fontWeight="medium"
+              >
+                Read more at ktty-world.gitbook.io
+              </Link>
+            </VStack>
 
             <Stack
               direction={{ base: "column", md: "row" }}
@@ -1344,34 +1404,33 @@ function Home() {
             align={{ base: "center", md: "flex-start" }}
             gap={8}
           >
-
             <HStack spacing={6}>
-            <Link href="https://x.com/Kttyworld" isExternal>
-              <IconButton
-                aria-label="Twitter"
-                icon={<FaTwitter />}
-                variant="ghost"
-                color={accentColor}
-                fontSize="xl"
-              />
-               </Link>
-               <Link href="https://discord.gg/sC3Hv46BKC" isExternal>
-              <IconButton
-                aria-label="Discord"
-                icon={<FaDiscord />}
-                variant="ghost"
-                color={accentColor}
-                fontSize="xl"
-              />
+              <Link href="https://x.com/Kttyworld" isExternal>
+                <IconButton
+                  aria-label="Twitter"
+                  icon={<FaTwitter />}
+                  variant="ghost"
+                  color={accentColor}
+                  fontSize="xl"
+                />
+              </Link>
+              <Link href="https://discord.gg/sC3Hv46BKC" isExternal>
+                <IconButton
+                  aria-label="Discord"
+                  icon={<FaDiscord />}
+                  variant="ghost"
+                  color={accentColor}
+                  fontSize="xl"
+                />
               </Link>
               <Link href="https://ktty-world.gitbook.io/ktty-world" isExternal>
-              <IconButton
-                aria-label="Github"
-                icon={<FaGithub />}
-                variant="ghost"
-                color={accentColor}
-                fontSize="xl"
-              />
+                <IconButton
+                  aria-label="Github"
+                  icon={<FaGithub />}
+                  variant="ghost"
+                  color={accentColor}
+                  fontSize="xl"
+                />
               </Link>
             </HStack>
           </Flex>
