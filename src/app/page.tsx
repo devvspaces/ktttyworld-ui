@@ -349,6 +349,7 @@ function Home() {
       const res = await findAvailableNFTs();
       const availableIds = res.token_ids;
       setAvailableNFTs(availableIds);
+      setMintedCount(res.amountMinted);
 
       if (availableIds.length == 0) {
         toast({
@@ -603,6 +604,7 @@ function Home() {
     const res = await findAvailableNFTs();
     const availableIds = res.token_ids;
     setAvailableNFTs(availableIds);
+    setMintedCount(res.amountMinted);
 
     if (availableIds.length == 0) {
       toast({
