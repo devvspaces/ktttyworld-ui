@@ -1040,12 +1040,15 @@ function Home() {
       <Box
         position="relative"
         width="100%"
-        height={{ base: "50vh", md: "70vh", lg: "80vh" }}
+        maxWidth={'1200px'}
+        height={{ base: "50vh", md: "65vh", lg: "75vh" }}
         overflow="hidden"
         bg="black"
         className={css`
           animation: ${fadeIn} 1s ease-out;
         `}
+        mx={'auto'}
+        my={'3rem'}
       >
         <video
           ref={videoRef}
@@ -1516,7 +1519,7 @@ function Home() {
                 borderWidth="1px"
                 borderColor={borderColor}
                 flex="1"
-                maxW={{ base: "full", md: "550px" }}
+                maxW={{ base: "full", md: "500px" }}
                 transition="transform 0.3s ease, box-shadow 0.3s ease"
                 _hover={{
                   transform: "translateY(-5px)",
@@ -1525,7 +1528,7 @@ function Home() {
               >
                 {/* Image placeholder with gradient */}
                 <Box
-                  h="400px"
+                  h="470px"
                   bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
                   position="relative"
                   display="flex"
@@ -1630,7 +1633,7 @@ function Home() {
                 borderWidth="1px"
                 borderColor={borderColor}
                 flex="1"
-                maxW={{ base: "full", md: "550px" }}
+                maxW={{ base: "full", md: "500px" }}
                 transition="transform 0.3s ease, box-shadow 0.3s ease"
                 _hover={{
                   transform: "translateY(-5px)",
@@ -1639,7 +1642,7 @@ function Home() {
               >
                 {/* Image placeholder with gradient */}
                 <Box
-                  h="400px"
+                  h="470px"
                   bg="linear-gradient(135deg, #fa709a 0%, #fee140 100%)"
                   position="relative"
                   display="flex"
