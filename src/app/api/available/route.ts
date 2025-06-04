@@ -19,10 +19,16 @@ export async function GET() {
     // once you get fewer than BATCH, you’re done
     if (data!.length < BATCH) break;
   }
+  // const totalNfts = await supabase
+  //   .from("nft_status")
+  //   .select("token_id", { count: "exact" })
+
+  const amountMinted = 6666 - allRows.length;
+  console.log("Amount minted:", amountMinted);
 
   // 2. Extract just the IDs
   const token_ids = allRows.map((r) => r.token_id);
   console.log("Total fetched:", token_ids.length);
 
-  return Response.json({ token_ids });
+  return Response.json({ token_ids, amountMinted });
 }

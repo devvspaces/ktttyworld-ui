@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 // Extend the Window interface to include the ethereum property
 declare global {
@@ -46,10 +46,19 @@ import {
   Divider,
   useToast,
   Link,
+  Progress,
 } from "@chakra-ui/react";
 import { keyframes } from "@emotion/react";
 import { css } from "@emotion/css";
-import { FaMoon, FaSun, FaTwitter, FaDiscord, FaGithub } from "react-icons/fa";
+import {
+  FaMoon,
+  FaSun,
+  FaTwitter,
+  FaDiscord,
+  FaGithub,
+  FaVolumeOff,
+  FaVolumeUp,
+} from "react-icons/fa";
 import { SiTarget } from "react-icons/si";
 import {
   createPublicClient,
@@ -103,6 +112,12 @@ const glowAnimation = keyframes`
   0% { filter: drop-shadow(0 0 5px rgba(124, 58, 237, 0.6)); }
   50% { filter: drop-shadow(0 0 15px rgba(124, 58, 237, 0.8)); }
   100% { filter: drop-shadow(0 0 5px rgba(124, 58, 237, 0.6)); }
+`;
+
+const pulseAnimation = keyframes`
+  0% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.5); }
+  100% { opacity: 1; transform: scale(1); }
 `;
 
 function Home() {
@@ -161,10 +176,21 @@ function Home() {
   const [isApproved, setIsApproved] = useState({ ktty: false });
   const [loading, setLoading] = useState(false);
   const [currentPhase, setCurrentPhase] = useState("0");
+  const [mintedCount, setMintedCount] = useState(0);
 
   const [walletDisplay, setWalletDisplay] = useState("");
   const [balances, setBalances] = useState({ ron: "0", ktty: "0" });
   const [showWalletMenu, setShowWalletMenu] = useState(false);
+
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isMuted, setIsMuted] = useState(true);
+
+  const toggleMute = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !videoRef.current.muted;
+      setIsMuted(!isMuted);
+    }
+  };
 
   // Add this effect to refresh balances periodically when connected
   useEffect(() => {
@@ -320,7 +346,8 @@ function Home() {
 
       // Check for available NFTs (this would need to be implemented according to your contract structure)
       // For example, you might scan tokenIds to find ones that are available
-      const availableIds = await findAvailableNFTs();
+      const res = await findAvailableNFTs();
+      const availableIds = res.token_ids;
       setAvailableNFTs(availableIds);
 
       if (availableIds.length == 0) {
@@ -350,8 +377,7 @@ function Home() {
   // Function to find available NFTs (this is a sample implementation)
   const findAvailableNFTs = async () => {
     const data = await fetch("/api/available");
-    const response = await data.json();
-    return response.token_ids;
+    return await data.json();
   };
 
   // Add this function to fetch token balances
@@ -574,7 +600,8 @@ function Home() {
 
   async function updateAvailableNFTs() {
     // Refresh available NFTs
-    const availableIds = await findAvailableNFTs();
+    const res = await findAvailableNFTs();
+    const availableIds = res.token_ids;
     setAvailableNFTs(availableIds);
 
     if (availableIds.length == 0) {
@@ -597,8 +624,10 @@ function Home() {
     console.log("NFT updated:", data);
 
     // Refresh available NFTs
-    const availableIds = await findAvailableNFTs();
+    const res = await findAvailableNFTs();
+    const availableIds = res.token_ids;
     setAvailableNFTs(availableIds);
+    setMintedCount(res.amountMinted);
 
     if (availableIds.length == 0) {
       toast({
@@ -683,6 +712,7 @@ function Home() {
       // Wait for transaction confirmation
       await publicClient.waitForTransactionReceipt({ hash });
 
+      setMintedCount((prev) => prev + mintAmount);
       toast({
         title: "Minting successful",
         description: "Your NFT has been minted successfully!",
@@ -783,6 +813,7 @@ function Home() {
 
       // Wait for transaction confirmation
       await publicClient.waitForTransactionReceipt({ hash });
+      setMintedCount((prev) => prev + mintAmount);
       toast({
         title: "Minting successful",
         description: "Your NFT has been minted successfully with RON + KTTY!",
@@ -1001,6 +1032,138 @@ function Home() {
             )}
           </HStack>
         </Flex>
+      </Box>
+
+      {/* Hero Video Section */}
+      <Box
+        position="relative"
+        width="100%"
+        height={{ base: "50vh", md: "70vh", lg: "80vh" }}
+        overflow="hidden"
+        bg="black"
+        className={css`
+          animation: ${fadeIn} 1s ease-out;
+        `}
+      >
+        <video
+          ref={videoRef}
+          autoPlay
+          loop
+          muted
+          playsInline
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            minWidth: "100%",
+            minHeight: "100%",
+            width: "auto",
+            height: "auto",
+            objectFit: "cover",
+          }}
+        >
+          <source
+            src="https://d1dqnt0gd112rm.cloudfront.net/IMG_2323.MP4"
+            type="video/mp4"
+          />
+          Your browser does not support the video tag.
+        </video>
+
+        {/* Mute/Unmute Button */}
+        <IconButton
+          aria-label="Toggle sound"
+          icon={isMuted ? <FaVolumeOff /> : <FaVolumeUp />}
+          position="absolute"
+          bottom="20px"
+          right="20px"
+          size="lg"
+          variant="primary"
+          onClick={toggleMute}
+        />
+      </Box>
+
+      {/* Mint Counter Section */}
+      <Box
+        bg={useColorModeValue("white", "gray.900")}
+        py={8}
+        borderBottom="1px solid"
+        borderColor={borderColor}
+      >
+        <Container maxW="container.xl">
+          <Flex
+            direction={{ base: "column", md: "row" }}
+            align="center"
+            justify="space-between"
+            gap={6}
+          >
+            {/* Left side - Counter */}
+            <VStack align={{ base: "center", md: "flex-start" }} spacing={2}>
+              <Text
+                fontSize="sm"
+                textTransform="uppercase"
+                letterSpacing="wider"
+                color={useColorModeValue("gray.600", "gray.400")}
+                fontWeight="medium"
+              >
+                Total Minted
+              </Text>
+              <HStack spacing={0} align="baseline">
+                <AnimatedCounter value={mintedCount} />
+                <Text
+                  fontSize="4xl"
+                  fontWeight="bold"
+                  color={useColorModeValue("gray.700", "gray.300")}
+                >
+                  /
+                </Text>
+                <Text
+                  fontSize="3xl"
+                  fontWeight="bold"
+                  color={useColorModeValue("gray.500", "gray.500")}
+                >
+                  6,666
+                </Text>
+              </HStack>
+              <Progress
+                value={(mintedCount / 6666) * 100}
+                size="sm"
+                colorScheme="purple"
+                borderRadius="full"
+                w={{ base: "200px", md: "300px" }}
+                bg={useColorModeValue("gray.200", "gray.700")}
+              />
+            </VStack>
+
+            {/* Right side - Live indicator */}
+            <HStack
+              spacing={4}
+              bg={useColorModeValue("purple.50", "purple.900")}
+              px={6}
+              py={3}
+              borderRadius="full"
+              borderWidth="1px"
+              borderColor={useColorModeValue("purple.200", "purple.700")}
+            >
+              <Box
+                w="8px"
+                h="8px"
+                borderRadius="full"
+                bg="green.400"
+                className={css`
+                  animation: ${pulseAnimation} 2s ease-in-out infinite;
+                `}
+              />
+              <Text
+                fontSize="sm"
+                fontWeight="medium"
+                color={useColorModeValue("purple.700", "purple.200")}
+              >
+                Live Updates
+              </Text>
+            </HStack>
+          </Flex>
+        </Container>
       </Box>
 
       {/* Hero Section */}
@@ -1340,6 +1503,185 @@ function Home() {
               direction={{ base: "column", md: "row" }}
               spacing={8}
               w="full"
+              justify="center"
+            >
+              {/* Meet the Tamers Card */}
+              <Box
+                bg={cardBg}
+                borderRadius="2xl"
+                overflow="hidden"
+                boxShadow="lg"
+                borderWidth="1px"
+                borderColor={borderColor}
+                flex="1"
+                maxW={{ base: "full", md: "550px" }}
+                transition="transform 0.3s ease, box-shadow 0.3s ease"
+                _hover={{
+                  transform: "translateY(-5px)",
+                  boxShadow: "xl",
+                }}
+              >
+                {/* Image placeholder with gradient */}
+                <Box
+                  h="400px"
+                  bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+                  position="relative"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                  overflow={"hidden"}
+                >
+                  <Image src="/1.jpg" alt="Meet the Tamers" />
+                </Box>
+
+                <VStack align="stretch" p={6} spacing={4}>
+                  <Heading
+                    size="lg"
+                    color={useColorModeValue("purple.600", "purple.300")}
+                  >
+                    Meet the Tamers
+                  </Heading>
+                  <VStack align="start" spacing={3}>
+                    <Text
+                      color={useColorModeValue("gray.600", "gray.400")}
+                      fontWeight="medium"
+                    >
+                      KTTY World is building the future of Web3 gaming through
+                      four core pillars:
+                    </Text>
+                    <VStack align="start" spacing={2} pl={2}>
+                      <HStack align="start" spacing={2}>
+                        <Text>🎮</Text>
+                        <Text
+                          color={useColorModeValue("gray.600", "gray.400")}
+                          fontSize="sm"
+                        >
+                          <Text as="span" fontWeight="semibold">
+                            Gaming:
+                          </Text>{" "}
+                          Immersive, player-owned experiences powered by
+                          blockchain.
+                        </Text>
+                      </HStack>
+                      <HStack align="start" spacing={2}>
+                        <Text>🧰</Text>
+                        <Text
+                          color={useColorModeValue("gray.600", "gray.400")}
+                          fontSize="sm"
+                        >
+                          <Text as="span" fontWeight="semibold">
+                            Tooling:
+                          </Text>{" "}
+                          Developer-grade tools built in-house to empower the
+                          ecosystem.
+                        </Text>
+                      </HStack>
+                      <HStack align="start" spacing={2}>
+                        <Text>🛒</Text>
+                        <Text
+                          color={useColorModeValue("gray.600", "gray.400")}
+                          fontSize="sm"
+                        >
+                          <Text as="span" fontWeight="semibold">
+                            Marketplace:
+                          </Text>{" "}
+                          A native-first NFT marketplace tailored for Ronin
+                          users.
+                        </Text>
+                      </HStack>
+                      <HStack align="start" spacing={2}>
+                        <Text>🧪</Text>
+                        <Text
+                          color={useColorModeValue("gray.600", "gray.400")}
+                          fontSize="sm"
+                        >
+                          <Text as="span" fontWeight="semibold">
+                            KTTY Labs:
+                          </Text>{" "}
+                          An incubator for innovation, supporting new ideas and
+                          creators from within the community.
+                        </Text>
+                      </HStack>
+                    </VStack>
+                    <Button
+                      as={Link}
+                      href={"https://www.ninefolds.io/"}
+                      target="_blank"
+                      variant="outline"
+                      colorScheme="purple"
+                      size="sm"
+                      alignSelf="flex-start"
+                      rounded="md"
+                    >
+                      Learn More
+                    </Button>
+                  </VStack>
+                </VStack>
+              </Box>
+
+              {/* Explore Felycia Card */}
+              <Box
+                bg={cardBg}
+                borderRadius="2xl"
+                overflow="hidden"
+                boxShadow="lg"
+                borderWidth="1px"
+                borderColor={borderColor}
+                flex="1"
+                maxW={{ base: "full", md: "550px" }}
+                transition="transform 0.3s ease, box-shadow 0.3s ease"
+                _hover={{
+                  transform: "translateY(-5px)",
+                  boxShadow: "xl",
+                }}
+              >
+                {/* Image placeholder with gradient */}
+                <Box
+                  h="400px"
+                  bg="linear-gradient(135deg, #fa709a 0%, #fee140 100%)"
+                  position="relative"
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="center"
+                  overflow={"hidden"}
+                >
+                  <Image src="/2.jpg" alt="Explore KORA" />
+                </Box>
+
+                <VStack align="stretch" p={6} spacing={4}>
+                  <Heading
+                    size="lg"
+                    color={useColorModeValue("purple.600", "purple.300")}
+                  >
+                    Explore K.O.R.A
+                  </Heading>
+                  <Text color={useColorModeValue("gray.600", "gray.400")}>
+                    KORA is your intelligent companion in the KTTY ecosystem a
+                    powerful AI designed to guide, support, and enhance player
+                    experiences. From onboarding new users to helping Tamers
+                    navigate the game and manage assets, KORA is always
+                    learning, evolving, and ready to serve the community 24/7.
+                  </Text>
+                  <Button
+                    as={Link}
+                    href={"https://kttyworld.io/kora"}
+                    target="_blank"
+                    variant="outline"
+                    colorScheme="purple"
+                    size="sm"
+                    alignSelf="flex-start"
+                    rounded="md"
+                  >
+                    Learn More
+                  </Button>
+                </VStack>
+              </Box>
+            </Stack>
+
+            <Stack
+              direction={{ base: "column", md: "row" }}
+              spacing={8}
+              w="full"
             >
               {[
                 {
@@ -1451,6 +1793,47 @@ function Home() {
       </Box>
     </Box>
   );
-}
+};
+
+// Add this component inside your Home component or as a separate component
+const AnimatedCounter = ({ value }: { value: number }) => {
+  const [displayValue, setDisplayValue] = useState(0);
+  
+  useEffect(() => {
+    const duration = 1000; // 1 second animation
+    const steps = 20;
+    const increment = (value - displayValue) / steps;
+    let current = displayValue;
+    let step = 0;
+    
+    const timer = setInterval(() => {
+      step++;
+      current += increment;
+      
+      if (step === steps) {
+        setDisplayValue(value);
+        clearInterval(timer);
+      } else {
+        setDisplayValue(Math.floor(current));
+      }
+    }, duration / steps);
+    
+    return () => clearInterval(timer);
+  }, [value]);
+  
+  return (
+    <Text
+      fontSize="5xl"
+      fontWeight="bold"
+      bgGradient="linear(to-r, purple.400, pink.400)"
+      bgClip="text"
+      className={css`
+        font-variant-numeric: tabular-nums;
+      `}
+    >
+      {displayValue.toLocaleString()}
+    </Text>
+  );
+};
 
 export default Home;
