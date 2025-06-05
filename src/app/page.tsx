@@ -1629,7 +1629,7 @@ function Home() {
                     </VStack>
                     <Button
                       as={Link}
-                      href={"https://www.ninefolds.io/"}
+                      href={"https://x.com/Nine_Folds"}
                       target="_blank"
                       variant="outline"
                       colorScheme="purple"
