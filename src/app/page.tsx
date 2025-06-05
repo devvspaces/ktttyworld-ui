@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 
 // Extend the Window interface to include the ethereum property
 declare global {
@@ -599,7 +599,7 @@ function Home() {
     return data.proof;
   }
 
-  async function updateAvailableNFTs() {
+  const updateAvailableNFTs = async () => {
     // Refresh available NFTs
     const res = await findAvailableNFTs();
     const availableIds = res.token_ids;
@@ -614,8 +614,27 @@ function Home() {
         duration: 3000,
         isClosable: true,
       });
+      throw new Error("No NFTs available");
     }
-  }
+  };
+
+  const syncNFTs = useCallback(async () => {
+    // Refresh available NFTs
+    const res = await findAvailableNFTs();
+    const availableIds = res.token_ids;
+    setAvailableNFTs(availableIds);
+    setMintedCount(res.amountMinted);
+  }, []);
+
+  useEffect(() => {
+    // run syncNFTs every 5 seconds
+    const interval = setInterval(() => {
+      syncNFTs().catch((error) => {
+        console.error("Error updating available NFTs:", error);
+      });
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [syncNFTs]);
 
   async function updateMintedNft(tokenIds: number[]) {
     const response = await fetch("/api/update", {
@@ -1040,15 +1059,15 @@ function Home() {
       <Box
         position="relative"
         width="100%"
-        maxWidth={'1200px'}
+        maxWidth={"1200px"}
         height={{ base: "50vh", md: "65vh", lg: "75vh" }}
         overflow="hidden"
         bg="black"
         className={css`
           animation: ${fadeIn} 1s ease-out;
         `}
-        mx={'auto'}
-        my={'3rem'}
+        mx={"auto"}
+        my={"3rem"}
       >
         <video
           ref={videoRef}
@@ -1798,23 +1817,23 @@ function Home() {
       </Box>
     </Box>
   );
-};
+}
 
 // Add this component inside your Home component or as a separate component
 const AnimatedCounter = ({ value }: { value: number }) => {
   const [displayValue, setDisplayValue] = useState(0);
-  
+
   useEffect(() => {
     const duration = 1000; // 1 second animation
     const steps = 20;
     const increment = (value - displayValue) / steps;
     let current = displayValue;
     let step = 0;
-    
+
     const timer = setInterval(() => {
       step++;
       current += increment;
-      
+
       if (step === steps) {
         setDisplayValue(value);
         clearInterval(timer);
@@ -1822,10 +1841,10 @@ const AnimatedCounter = ({ value }: { value: number }) => {
         setDisplayValue(Math.floor(current));
       }
     }, duration / steps);
-    
+
     return () => clearInterval(timer);
   }, [value]);
-  
+
   return (
     <Text
       fontSize="5xl"
