@@ -634,30 +634,10 @@ function Home() {
     return () => clearInterval(interval);
   }, [syncNFTs]);
 
-  async function updateMintedNft(tokenIds: number[]) {
-    const response = await fetch("/api/update", {
-      method: "POST",
-      body: JSON.stringify({ token_ids: tokenIds }),
-    });
-    const data = await response.json();
-    console.log("NFT updated:", data);
-
-    // Refresh available NFTs
+  async function updateMintedNft() {
     const res = await findAvailableNFTs();
     const availableIds = res.token_ids;
     setAvailableNFTs(availableIds);
-    setMintedCount(res.amountMinted);
-
-    if (availableIds.length == 0) {
-      toast({
-        title: "No More NFTs available",
-        description: "There are no NFTs available for minting.",
-        status: "info",
-        duration: 3000,
-        isClosable: true,
-      });
-    }
-
     setIsApproved({ ktty: false });
   }
 
@@ -739,9 +719,7 @@ function Home() {
         duration: 5000,
         isClosable: true,
       });
-
-      // Update available NFTs
-      await updateMintedNft(selectedNFT);
+      await updateMintedNft();
     } catch (error) {
       console.error("Error minting with RON:", error);
       toast({
@@ -842,7 +820,7 @@ function Home() {
       });
 
       // Update available NFTs
-      await updateMintedNft(selectedNFT);
+      await updateMintedNft();
     } catch (error) {
       console.error("Error minting with RON + KTTY:", error);
       toast({
