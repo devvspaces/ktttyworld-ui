@@ -782,7 +782,6 @@ function Home() {
     }
     try {
       // First check if RON is approved
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const ronAmount = BigInt(
         parseFloat(discountedRonPrice!) * mintAmount * 10 ** 18
       );
@@ -822,7 +821,7 @@ function Home() {
         abi: MasterMinterABI,
         functionName: "mintWithRonAndNative",
         args: [selectedNFT, proof],
-        // value: ronAmount,
+        value: ronAmount,
       });
 
       toast({
