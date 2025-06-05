@@ -620,19 +620,17 @@ function Home() {
 
   const syncNFTs = useCallback(async () => {
     // Refresh available NFTs
-    const res = await findAvailableNFTs();
-    const availableIds = res.token_ids;
-    setAvailableNFTs(availableIds);
+    const data = await fetch("/api/amountMinted");
+    const res = await data.json();
     setMintedCount(res.amountMinted);
   }, []);
 
   useEffect(() => {
-    // run syncNFTs every 15 seconds
     const interval = setInterval(() => {
       syncNFTs().catch((error) => {
         console.error("Error updating available NFTs:", error);
       });
-    }, 15000);
+    }, 10000);
     return () => clearInterval(interval);
   }, [syncNFTs]);
 
@@ -1059,7 +1057,7 @@ function Home() {
       <Box
         position="relative"
         width="100%"
-        maxWidth={"1200px"}
+        maxWidth={"1350px"}
         height={{ base: "50vh", md: "65vh", lg: "75vh" }}
         overflow="hidden"
         bg="black"
