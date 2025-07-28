@@ -35,14 +35,14 @@ const CountdownBadge = () => {
 
   return (
     <Badge
-      colorScheme={isLive ? "green" : "purple"}
+      colorScheme={isLive ? "red" : "purple"}
       fontSize="sm"
       fontWeight="bold"
       px={3}
       py={1}
       borderRadius="full"
     >
-      {isLive ? "Mint Now Live" : timeLeft}
+      {isLive ? "Mint Closed" : timeLeft}
     </Badge>
   );
 };
